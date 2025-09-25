@@ -1,4 +1,6 @@
-﻿using Dndcs2.dtos;
+﻿using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities;
+using Dndcs2.dtos;
 using Microsoft.Extensions.Logging;
 using DndClass = Dndcs2.dtos.DndClass;
 
@@ -10,12 +12,18 @@ public static class CommonMethods
     {
         return new DndcsContext();
     }
+
+    public static int GetPlayerAccountId(CCSPlayerController player)
+    {
+        return player.IsBot ? player.PlayerName.Length : new SteamID(player.SteamID).AccountId;
+    }
     
-    public static DndPlayer? RetrievePlayer(int accountId, bool atConnectionTime)
+    public static DndPlayer? RetrievePlayer(CCSPlayerController player, bool atConnectionTime)
     {
         // Players should *always* be created at connection. If that does not occur, I WANT any call to this method to
         // fail hard, not gracefully. Ignore any warnings caused at any time OTHER than testing for null values at 
         // creation
+        int accountId = GetPlayerAccountId(player);
         using (var connection = CreateContext())
         {
             var candidates = connection.DndPlayers
@@ -25,11 +33,12 @@ public static class CommonMethods
         }
     }
     
-    public static DndPlayer RetrievePlayer(int accountId)
+    public static DndPlayer RetrievePlayer(CCSPlayerController player)
     {
         // Players should *always* be created at connection. If that does not occur, I WANT any call to this method to
         // fail hard, not gracefully. Ignore any warnings caused at any time OTHER than testing for null values at 
         // creation
+        int accountId = GetPlayerAccountId(player);
         using (var connection = CreateContext())
         {
             var candidates = connection.DndPlayers
@@ -39,31 +48,27 @@ public static class CommonMethods
         }
     }
 
-    public static DndSpecieProgress? RetrieveSpecieProgress(int accountId)
+    public static DndSpecieProgress? RetrieveSpecieProgress(CCSPlayerController player)
     {
-        DndPlayer? player =  RetrievePlayer(accountId);
-        if (player == null)
-            return null;
+        DndPlayer dndPlayer =  RetrievePlayer(player);
          
         using (var connection = CreateContext())
         {
             var candidates = connection.DndSpecieProgresses
-                .Where(s => s.DndPlayerId == player.DndPlayerId && 
-                            s.DndSpecieExperienceId == player.DndSpecieId && s.Enabled == true);
+                .Where(s => s.DndPlayerId == dndPlayer.DndPlayerId && 
+                            s.DndSpecieExperienceId == dndPlayer.DndSpecieId && s.Enabled == true);
             return candidates.FirstOrDefault();
         }
     }
     
-    public static DndClassProgress? RetrievePlayerClassProgress(int accountId)
+    public static DndClassProgress? RetrievePlayerClassProgress(CCSPlayerController player)
     {
-        DndPlayer? player =  RetrievePlayer(accountId);
-        if (player == null)
-            return null;
+        DndPlayer dndPlayer =  RetrievePlayer(player);        
          
         using (var connection = CreateContext())
         {
             var candidates = connection.DndClassProgresses
-                .Where(s => s.DndPlayerId == player.DndPlayerId && s.DndClassId == player.DndClassId &&
+                .Where(s => s.DndPlayerId == dndPlayer.DndPlayerId && s.DndClassId == dndPlayer.DndClassId &&
                             s.Enabled == true);
             return candidates.FirstOrDefault();
         }
@@ -80,7 +85,7 @@ public static class CommonMethods
         }
     }
     
-    public static DndPlayer CreateNewPlayer(int accountId, string creator)
+    public static DndPlayer CreateNewPlayer(CCSPlayerController player, string creator)
     {
         var dndPlayer = new DndPlayer(
             creator,
@@ -88,7 +93,7 @@ public static class CommonMethods
             creator,
             DateTime.UtcNow,
             true,
-            accountId,
+            player.IsBot ? player.PlayerName.Length : new SteamID(player.SteamID).AccountId,
             // TODO: Random starting gold? Setting?
             0,
             (int)constants.DndClass.Fighter,
@@ -102,7 +107,7 @@ public static class CommonMethods
             SaveChanges(connection);
         }
 
-        Dndcs2.DndLogger.LogInformation($"Player {accountId} created");
+        Dndcs2.DndLogger.LogInformation($"Player {dndPlayer.DndPlayerAccountId} created");
         return dndPlayer;
     }
 

@@ -21,13 +21,12 @@ public class PlayerConnectFull: DndEvent<EventPlayerConnectFull>
             throw new Exception($"{GetType().Name} Userid was null");
      
         string message = $"{@event.Userid.PlayerName} connected, ";
-
-        var accountId = new SteamID(@event.Userid.SteamID).AccountId;
-        var dndPlayer = CommonMethods.RetrievePlayer(accountId, true);
+        
+        var dndPlayer = CommonMethods.RetrievePlayer(@event.Userid, true);
         if (dndPlayer != null)
             WelcomePlayerBack(dndPlayer, message);
         else
-            WelcomeNewPlayer(accountId, message);
+            WelcomeNewPlayer(@event.Userid, message);
 
         return HookResult.Continue;
     }
@@ -40,9 +39,9 @@ public class PlayerConnectFull: DndEvent<EventPlayerConnectFull>
         return dndPlayer;
     }
 
-    private DndPlayer WelcomeNewPlayer(int accountId, string message)
+    private DndPlayer WelcomeNewPlayer(CCSPlayerController player, string message)
     {
-        var dndPlayer = CommonMethods.CreateNewPlayer(accountId, GetType().Name);
+        var dndPlayer = CommonMethods.CreateNewPlayer(player, GetType().Name);
         message += "help out the new player!";
         BroadcastMessage(message);
         return dndPlayer;

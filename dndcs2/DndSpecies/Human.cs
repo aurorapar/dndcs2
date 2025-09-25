@@ -39,7 +39,7 @@ public class Human : DndBaseSpecie
         public static HookResult PlayerDeathPost(EventPlayerDeath @event, GameEventInfo info)
         {
             var attacker = @event.Attacker;
-            var dndPlayerAttacker = CommonMethods.RetrievePlayer(new SteamID(attacker.SteamID).AccountId);
+            var dndPlayerAttacker = CommonMethods.RetrievePlayer(attacker);
             var attackerSpecieEnum = (constants.DndSpecie) dndPlayerAttacker.DndSpecieId;
             if (attackerSpecieEnum == constants.DndSpecie.Human)
             {

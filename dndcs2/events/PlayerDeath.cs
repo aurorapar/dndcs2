@@ -23,8 +23,8 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
         var victim = @event.Userid;
         var attacker = @event.Attacker;
         
-        var dndPlayerVictim = CommonMethods.RetrievePlayer(new SteamID(victim.SteamID).AccountId);
-        var dndPlayerAttacker = CommonMethods.RetrievePlayer(new SteamID(attacker.SteamID).AccountId);
+        var dndPlayerVictim = CommonMethods.RetrievePlayer(victim);
+        var dndPlayerAttacker = CommonMethods.RetrievePlayer(attacker);
 
         var victimClassEnum = (constants.DndClass) dndPlayerVictim.DndClassId;
         var victimSpecieEnum = (constants.DndSpecie) dndPlayerVictim.DndSpecieId;

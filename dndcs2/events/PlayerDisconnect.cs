@@ -22,13 +22,8 @@ public class PlayerDisconnect : DndEvent<EventPlayerDisconnect>
         PrintMessageToConsole($"See ya later, {@event.Userid.PlayerName}! {@event.Userid.SteamID}");
         BroadcastMessage($"See ya later, {@event.Userid.PlayerName}! {@event.Userid.SteamID}");
         
-        var accountId = new SteamID(@event.Userid.SteamID).AccountId;
-        var dndPlayer = CommonMethods.RetrievePlayer(accountId);
-        if (dndPlayer == null)
-        {
-            Dndcs2.DndLogger.LogError($"Player {accountId} not found when updating logout");
-            return HookResult.Continue;    
-        }
+        var dndPlayer = CommonMethods.RetrievePlayer(@event.Userid);
+        
         CommonMethods.TrackPlayerLogout(dndPlayer, GetType().Name);
         
         return HookResult.Continue;
