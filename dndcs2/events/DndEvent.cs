@@ -1,5 +1,6 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
+using Dndcs2.dtos;
 
 namespace Dndcs2.events;
 
@@ -31,5 +32,31 @@ public abstract class DndEvent<T> : DndEventContainer
     public virtual HookResult DefaultPostHookCallback(T @event, GameEventInfo info)
     {
         return HookResult.Continue;   
+    }
+
+    public static DndEvent<TU> RetrieveEvent<TU>() where TU : GameEvent
+    {
+        DndEvent<TU>? baseEvent = null;
+        foreach (var registeredEvent in Dndcs2.Instance.DndEvents)
+        {
+            if (registeredEvent is DndEvent<TU>)
+            {
+                baseEvent = registeredEvent as DndEvent<TU>;
+                break;
+            }
+        }
+
+        if (baseEvent is null)
+            throw new Exception($"Could not find a base registered event for {nameof(TU)}");
+        
+        return baseEvent;
+    }
+
+    public static void GrantPlayerExperience(DndPlayer dndPlayer, int amount, string reason, string source)
+    {
+        var roundStartEvent = (RoundStart) RetrieveEvent<EventRoundStart>();
+        var xpLogItem = new DndExperienceLog(source, DateTime.UtcNow, source, DateTime.UtcNow, true,
+            dndPlayer.DndPlayerId, amount, reason);
+        roundStartEvent.XpRoundTracker[dndPlayer.DndPlayerId].Add(xpLogItem);
     }
 }

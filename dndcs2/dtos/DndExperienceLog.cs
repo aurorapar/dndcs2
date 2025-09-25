@@ -10,14 +10,17 @@ public class DndExperienceLog : MetaDtoObject
     [ForeignKey(nameof(DndPlayer.DndPlayerId))]
     public int DndPlayerId { get; private set; }
     public int ExperienceAmount { get; set; }
+    [MaxLength(150)]
+    public string Reason { get; private set; }
     
     
     public DndExperienceLog(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled,
-    int dndPlayerId, int experienceAmount) : 
+    int dndPlayerId, int experienceAmount, string reason) : 
         base(createdBy, createDate, updatedBy, updatedDate, enabled)
     {
         DndPlayerId = dndPlayerId;
         ExperienceAmount = experienceAmount;
+        Reason = reason;
     }
     
     //For EF, don't use

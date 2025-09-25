@@ -18,8 +18,8 @@ public class DndPlayer : MetaDtoObject
     public int DndSpecieId { get; set; }
     public DateTime LastConnected { get; set; }
     public DateTime? LastDisconnected { get; set; }
-    public TimeSpan? PlayTime { get; set; }
     [DefaultValue(0)]
+    public Double PlayTimeHours { get; set; }
     public int Warnings { get; set; }
     public ICollection<DndPlayerStats> DndPlayerStats { get; } = new List<DndPlayerStats>();
     public ICollection<DndClassProgress> DndClassExperiences { get; } = new List<DndClassProgress>();

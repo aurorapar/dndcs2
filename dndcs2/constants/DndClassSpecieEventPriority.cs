@@ -1,4 +1,4 @@
-﻿namespace dndcs2.constants;
+﻿namespace Dndcs2.constants;
 
 public enum DndClassSpecieEventPriority
 {

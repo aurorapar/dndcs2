@@ -1,7 +1,6 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
-using dndcs2.constants;
-using Dndcs2.constants; 
+using Dndcs2.constants;
     
 namespace Dndcs2.events;
 
@@ -37,20 +36,7 @@ public abstract class DndClassSpecieEventFeature<T> : DndClassSpecieEventFeature
 
     private DndEvent<T> DetermineBaseEvent()
     {
-        DndEvent<T>? baseEvent = null;
-        foreach (var registeredEvent in Dndcs2.Instance.DndEvents)
-        {
-            if (registeredEvent is DndEvent<T>)
-            {
-                baseEvent = registeredEvent as DndEvent<T>;
-                break;
-            }
-        }
-
-        if (baseEvent is null)
-            throw new Exception($"Could not find a base registered event for {nameof(T)}");
-        
-        return baseEvent;
+        return DndEvent<T>.RetrieveEvent<T>();
     }
 
     private void AddClassSpecieFeatureEvent()

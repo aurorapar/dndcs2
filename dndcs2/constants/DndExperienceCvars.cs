@@ -5,6 +5,7 @@ namespace Dndcs2;
 public partial class Dndcs2
 {
     public static FakeConVar<int> KillXP = new ("DndKillXP", "Scoring a kill!", 50);
+    public static FakeConVar<int> HumanXP = new ("DndHumanXP", "Human ingenuity during a kill", 10);
     public static FakeConVar<int> KillModifierHighXP = new ("DndKillModifierHighXP", "(they were higher level!)", 50);
     public static FakeConVar<int> KillModiferLowXP = new ("DndKillModifierLowXP", " (they were lower level)", 50);
     public static FakeConVar<int> HeadShotXP = new ("DndHeadShotXP", "Getting a Headshot!", 35);
@@ -13,7 +14,7 @@ public partial class Dndcs2
     public static FakeConVar<int> KillingSpreeXP = new ("DndKillingSpreeXP", "Being on a killing spree!", 20);
     public static FakeConVar<int> BountyXP = new ("DnDBountyXP", "Collecting a bounty on {0}!", 40);
     public static FakeConVar<int> AssistXP = new ("DndAssistXP", "Assisting {0} with a kill!", 20);
-    public static FakeConVar<int> TeamKillXP = new ("DndTeamKillXP", "Killing a teammate!", 200);
+    public static FakeConVar<int> TeamKillXP = new ("DndTeamKillXP", "Killing a teammate!", -200);
     public static FakeConVar<int> BombPlantedXP = new ("DndBombPlantedXP", "Planting the bomb!", 100);
     public static FakeConVar<int> BombExplodedXP = new ("DndBombExplodedXP", "Your bomb plant exploding!", 50);
     public static FakeConVar<int> BombDefusedXP = new ("Dnd.BombDefusedXP", "Defusing the bomb!", 100);

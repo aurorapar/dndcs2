@@ -1,5 +1,4 @@
 ﻿using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities;
 using Dndcs2.dtos;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.Sql;
@@ -27,7 +26,10 @@ public class PlayerConnectFull: DndEvent<EventPlayerConnectFull>
             WelcomePlayerBack(dndPlayer, message);
         else
             WelcomeNewPlayer(@event.Userid, message);
-
+        
+        dndPlayer = CommonMethods.RetrievePlayer(@event.Userid, true);
+        var playTime = dndPlayer.PlayTimeHours + (DateTime.UtcNow - dndPlayer.LastConnected).TotalHours; 
+        MessagePlayer(@event.Userid, $"Your total playtime: {(int) playTime} hours {(int)((playTime - (int) playTime)*60)} minutes");
         return HookResult.Continue;
     }
 

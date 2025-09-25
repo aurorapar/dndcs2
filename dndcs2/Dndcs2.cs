@@ -1,5 +1,5 @@
 ﻿using System.Collections.ObjectModel;
-using System.Reflection;
+using CounterStrikeSharp.API;
 using Microsoft.Extensions.Logging;
 using CounterStrikeSharp.API.Core;
 using Dndcs2.DndClasses;
@@ -48,7 +48,7 @@ public partial class Dndcs2 : BasePlugin
         RegisterClassesSpecies();
         
         DndLogger.LogInformation("Loaded plugin");
-    }
+    }    
     
     public void RegisterEventCallbacks()
     {
@@ -57,7 +57,9 @@ public partial class Dndcs2 : BasePlugin
             new PlayerDeath(),
             new PlayerConnectFull(),
             new PlayerDisconnect(),
-            new PlayerSpawn()
+            new PlayerSpawn(),
+            new RoundStart(),
+            new RoundEnd()
         };
     }
 
@@ -78,13 +80,13 @@ public partial class Dndcs2 : BasePlugin
         {
             var dndClassEnum = dndClassEnumCombo.Item1;
             var dndClassType = dndClassEnumCombo.Item2;
+            var constructor = dndClassType.GetConstructors();
             
             int dndClassId = (int)dndClassEnum;
             var dndClassRecord = CommonMethods.RetrieveDndClass(dndClassId);
             
             if (dndClassRecord == null)
             {
-                var constructor = dndClassType.GetConstructors();
                 DateTime creationTime = DateTime.UtcNow;
                 string author = "D&D Initial Creation";
                 bool enabled = true;
@@ -105,6 +107,36 @@ public partial class Dndcs2 : BasePlugin
                 CommonMethods.CreateNewDndClass((DndBaseClass) newDndClass);
                 DndClassLookup[dndClassEnum] = (DndBaseClass) newDndClass;
             }
+            else
+            {
+                Collection<DndClassRequirement> classReqs = new();
+                foreach (var classReq in dndClassRecord.DndClassRequirements)
+                {
+                    classReqs.Add(new DndClassRequirement(
+                        classReq.CreatedBy,
+                        classReq.CreateDate, 
+                        classReq.UpdatedBy,
+                        classReq.UpdatedDate,
+                        classReq.Enabled, 
+                        dndClassRecord.DndClassId,
+                        classReq.DndRequiredClassId, 
+                        classReq.DndRequiredClassLevel
+                    ));
+                }
+                
+                var newDndClass = constructor[0].Invoke(new object[]
+                {
+                    dndClassRecord.CreatedBy,
+                    dndClassRecord.CreateDate, 
+                    dndClassRecord.UpdatedBy,
+                    dndClassRecord.UpdatedDate,
+                    dndClassRecord.Enabled, 
+                    dndClassRecord.DndClassName, 
+                    dndClassRecord.DndClassDescription, 
+                    classReqs
+                });
+                DndClassLookup[dndClassEnum] = (DndBaseClass) newDndClass;
+            }
         }
         
         var dndSpecieEnumType = typeof(constants.DndSpecie);
@@ -112,13 +144,13 @@ public partial class Dndcs2 : BasePlugin
         {
             var dndSpecieEnum = dndSpecieEnumTypeCombo.Item1;
             var dndSpecieType = dndSpecieEnumTypeCombo.Item2;
+            var constructor = dndSpecieType.GetConstructors();
             
             int dndSpecieId = (int)dndSpecieEnum;
             var dndSpecieRecord = CommonMethods.RetrieveDndSpecie(dndSpecieId);
             
             if (dndSpecieRecord == null)
             {
-                var constructor = dndSpecieType.GetConstructors();
                 DateTime creationTime = DateTime.UtcNow;
                 string author = "D&D Initial Creation";
                 bool enabled = true;
@@ -132,7 +164,6 @@ public partial class Dndcs2 : BasePlugin
                     author, 
                     creationTime, 
                     enabled, 
-                    dndSpecieId, 
                     dndSpecieName, 
                     dndSpecieDescription, 
                     0, //TODO: define level adjustment somewhere
@@ -141,11 +172,51 @@ public partial class Dndcs2 : BasePlugin
                 CommonMethods.CreateNewDndSpecie((DndBaseSpecie) newDndSpecie);
                 DndSpecieLookup[dndSpecieEnum] = (DndBaseSpecie) newDndSpecie;
             }
+            else
+            {
+                Collection<DndSpecieRequirement> specieReqs = new();
+                foreach (var specieReq in dndSpecieRecord.DndSpecieRequirements)
+                {
+                    specieReqs.Add(new DndSpecieRequirement(
+                        specieReq.CreatedBy,
+                        specieReq.CreateDate, 
+                        specieReq.UpdatedBy,
+                        specieReq.UpdatedDate,
+                        specieReq.Enabled, 
+                        dndSpecieRecord.DndSpecieId, 
+                        specieReq.DndRequiredSpecieId,
+                        specieReq.DndRequiredSpecieLevel
+                    ));
+                }
+                
+                var newDndSpecie = constructor[0].Invoke(new object[]
+                {
+                    dndSpecieRecord.CreatedBy,
+                    dndSpecieRecord.CreateDate, 
+                    dndSpecieRecord.UpdatedBy,
+                    dndSpecieRecord.UpdatedDate,
+                    dndSpecieRecord.Enabled, 
+                    dndSpecieRecord.DndSpecieName, 
+                    dndSpecieRecord.DndSpecieDescription, 
+                    dndSpecieRecord.DndSpecieLevelAdjustment,
+                    specieReqs
+                });
+                DndSpecieLookup[dndSpecieEnum] = (DndBaseSpecie) newDndSpecie;
+            }
         }
     }
 
     public override void Unload(bool hotreload)
     {
+        var roundEndEvent = (RoundEnd) DndEvent<EventRoundEnd>.RetrieveEvent<EventRoundEnd>();
+        foreach (var player in Utilities.GetPlayers())
+        {
+            var dndPlayer = CommonMethods.RetrievePlayer(player);
+            roundEndEvent.DoDefaultPostCallback(5, player, dndPlayer);    
+        }
+        
+        using(var context = CommonMethods.CreateContext())
+            CommonMethods.SaveChanges(context);
         DndLogger.LogInformation("Unloaded plugin");
     }
 }

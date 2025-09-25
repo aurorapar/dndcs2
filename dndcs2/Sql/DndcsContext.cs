@@ -39,7 +39,7 @@ public class DndcsContext : DbContext
     public void EnsureCreated()
     {        
         Database.EnsureCreated();
-        PrintMessageToConsole("Database Created!");
-        Dndcs2.DndLogger.LogInformation("New database created");
+        PrintMessageToConsole("Database Created or Loaded!");
+        Dndcs2.DndLogger.LogInformation("Database Created or Loaded");
     }
 }

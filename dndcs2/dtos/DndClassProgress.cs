@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Dndcs2.dtos;
 
@@ -6,17 +7,18 @@ public class DndClassProgress : MetaDtoObject
 {
     [Key]
     public int DndClassExperienceId { get; private set; }
+    [ForeignKey(nameof(DndPlayer.DndPlayerId))]
     public int DndPlayerId { get; private set; }
+    [ForeignKey(nameof(DndClass.DndClassId))]
     public int DndClassId { get; private set; }
     public int DndExperienceAmount { get; set; }
     public int DndLevelAmount { get; set; }
     
     public DndClassProgress(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, 
-        bool enabled, int dndClassExperienceId, int dndPlayerId, int dndClassId, int dndLevelAmount = 0, 
+        bool enabled, int dndPlayerId, int dndClassId, int dndLevelAmount = 1, 
         int dndExperienceAmount = 0) : 
         base(createdBy, createDate, updatedBy, updatedDate, enabled)
     {
-        DndClassExperienceId = dndClassExperienceId;
         DndPlayerId = dndPlayerId;
         DndClassId = dndClassId;
         DndExperienceAmount = dndExperienceAmount;

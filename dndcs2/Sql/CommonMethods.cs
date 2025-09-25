@@ -1,6 +1,8 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities;
+using static Dndcs2.messages.DndMessages;
 using Dndcs2.dtos;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using DndClass = Dndcs2.dtos.DndClass;
 
@@ -48,7 +50,7 @@ public static class CommonMethods
         }
     }
 
-    public static DndSpecieProgress? RetrieveSpecieProgress(CCSPlayerController player)
+    public static DndSpecieProgress RetrievePlayerSpecieProgress(CCSPlayerController player)
     {
         DndPlayer dndPlayer =  RetrievePlayer(player);
          
@@ -56,12 +58,12 @@ public static class CommonMethods
         {
             var candidates = connection.DndSpecieProgresses
                 .Where(s => s.DndPlayerId == dndPlayer.DndPlayerId && 
-                            s.DndSpecieExperienceId == dndPlayer.DndSpecieId && s.Enabled == true);
-            return candidates.FirstOrDefault();
+                            s.DndSpecieId == dndPlayer.DndSpecieId && s.Enabled == true);
+            return candidates.First();
         }
     }
     
-    public static DndClassProgress? RetrievePlayerClassProgress(CCSPlayerController player)
+    public static DndClassProgress RetrievePlayerClassProgress(CCSPlayerController player)
     {
         DndPlayer dndPlayer =  RetrievePlayer(player);        
          
@@ -70,7 +72,7 @@ public static class CommonMethods
             var candidates = connection.DndClassProgresses
                 .Where(s => s.DndPlayerId == dndPlayer.DndPlayerId && s.DndClassId == dndPlayer.DndClassId &&
                             s.Enabled == true);
-            return candidates.FirstOrDefault();
+            return candidates.First();
         }
     }
     
@@ -99,11 +101,37 @@ public static class CommonMethods
             (int)constants.DndClass.Fighter,
             (int)constants.DndSpecie.Human,
             DateTime.UtcNow
-        );
+        );        
         
         using (var connection = CreateContext())
         {
-            connection.DndPlayers.Add(dndPlayer);    
+            connection.DndPlayers.Add(dndPlayer);
+            connection.Entry(dndPlayer).State = EntityState.Added;
+            SaveChanges(connection);
+            
+            var classProgress = new DndClassProgress(
+                creator,
+                DateTime.UtcNow,
+                creator,
+                DateTime.UtcNow,
+                true,
+                dndPlayer.DndPlayerId,
+                dndPlayer.DndClassId
+            );
+        
+            var specieProgress = new DndSpecieProgress(
+                creator,
+                DateTime.UtcNow,
+                creator,
+                DateTime.UtcNow,
+                true,
+                dndPlayer.DndPlayerId,
+                dndPlayer.DndSpecieId     
+            );
+            connection.DndClassProgresses.Add(classProgress);
+            connection.DndSpecieProgresses.Add(specieProgress);
+            connection.Entry(classProgress).State = EntityState.Added;
+            connection.Entry(specieProgress).State = EntityState.Added;
             SaveChanges(connection);
         }
 
@@ -117,8 +145,11 @@ public static class CommonMethods
         dndPlayer.UpdatedDate = loginTime;
         dndPlayer.UpdatedBy = creator;
         using (var connection = CreateContext())
+        {
+            connection.Entry(dndPlayer).State = EntityState.Modified;
             SaveChanges(connection);
-             
+        }
+
         return dndPlayer;
     }
 
@@ -169,17 +200,56 @@ public static class CommonMethods
         dndPlayer.LastDisconnected = DateTime.UtcNow;
         dndPlayer.UpdatedDate = DateTime.UtcNow;
         dndPlayer.UpdatedBy = creator;
-        TimeSpan? sessionTime = dndPlayer.LastDisconnected - dndPlayer.LastConnected;        
-        dndPlayer.PlayTime += sessionTime.Value;
-        using (var connection = CreateContext())            
+        TimeSpan sessionTime = (DateTime) dndPlayer.LastDisconnected - dndPlayer.LastConnected;        
+        dndPlayer.PlayTimeHours += sessionTime.TotalHours;
+        using (var connection = CreateContext())
+        {
+            connection.Entry(dndPlayer).State = EntityState.Modified;
             SaveChanges(connection);
-        
+        }
         return dndPlayer;
     }
 
     public static void SaveChanges(DndcsContext context)
     {
         context.SaveChangesAsync();
+    }
+
+    public static void GrantExperience(CCSPlayerController player, DndExperienceLog xpLogItem)
+    {
+        var dndClassProgress = RetrievePlayerClassProgress(player);
+        var dndSpecieProgress = RetrievePlayerSpecieProgress(player);
+        
+        dndClassProgress.DndExperienceAmount += xpLogItem.ExperienceAmount;
+        dndClassProgress.UpdatedDate = xpLogItem.CreateDate;
+        dndClassProgress.UpdatedBy = xpLogItem.CreatedBy;
+        
+        dndSpecieProgress.DndExperienceAmount += xpLogItem.ExperienceAmount;
+        dndSpecieProgress.UpdatedDate = xpLogItem.CreateDate;
+        dndSpecieProgress.UpdatedBy = xpLogItem.CreatedBy;
+
+        if (dndClassProgress.DndExperienceAmount >= dndClassProgress.DndLevelAmount * 1000)
+        {
+            BroadcastMessage($"Congratulations, {player.PlayerName}! You leveled up your class!");
+            dndClassProgress.DndExperienceAmount -= dndClassProgress.DndLevelAmount * 1000;
+            dndClassProgress.DndLevelAmount += 1;
+        }
+        if (dndSpecieProgress.DndExperienceAmount >= dndSpecieProgress.DndLevelAmount * 1000 )
+        {
+            BroadcastMessage($"Congratulations, {player.PlayerName}! You leveled up your specie!");
+            dndSpecieProgress.DndExperienceAmount -= dndSpecieProgress.DndLevelAmount * 1000;
+            dndSpecieProgress.DndLevelAmount += 1;
+        }        
+
+        using (var connection = CreateContext())
+        {
+            connection.DndExperienceLogs.Add(xpLogItem);
+            connection.Entry(dndClassProgress).State = EntityState.Modified;
+            connection.Entry(dndSpecieProgress).State = EntityState.Modified;
+            connection.Entry(xpLogItem).State = EntityState.Added;
+            SaveChanges(connection);
+        }
+            
     }
     
 }

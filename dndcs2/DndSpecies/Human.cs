@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities;
-using dndcs2.constants;
+using Dndcs2.constants;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using Dndcs2.Sql;
@@ -13,14 +12,14 @@ namespace Dndcs2.DndSpecies;
 public class Human : DndBaseSpecie
 {
     public Human(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled, 
-        int dndSpecieId, string dndSpecieName, string dndSpecieDescription, int dndSpecieLevelAdjustment, 
+        string dndSpecieName, string dndSpecieDescription, int dndSpecieLevelAdjustment, 
         Collection<DndSpecieRequirement> dndSpecieRequirements) : 
-        base(createdBy, createDate, updatedBy, updatedDate, enabled, dndSpecieId, dndSpecieName, dndSpecieLevelAdjustment, 
-            dndSpecieDescription, dndSpecieRequirements)
+        base(createdBy, createDate, updatedBy, updatedDate, enabled, (int) constants.DndSpecie.Human, dndSpecieName, 
+            dndSpecieLevelAdjustment, dndSpecieDescription, dndSpecieRequirements)
     {        
         DndClassSpecieEvents = new List<DndClassSpecieEventFeatureContainer>()
         {
-            new HumanPostPlayerDeathEventFeature(true, DndClassSpecieEventPriority.Medium, 
+            new HumanPostPlayerDeathEventFeature(false, DndClassSpecieEventPriority.Medium, 
                 HookMode.Post, HumanPostPlayerDeathEventFeature.PlayerDeathPost, null, constants.DndSpecie.Human),
         };
         
@@ -38,12 +37,17 @@ public class Human : DndBaseSpecie
 
         public static HookResult PlayerDeathPost(EventPlayerDeath @event, GameEventInfo info)
         {
+            PrintMessageToConsole("Someone dieded");
             var attacker = @event.Attacker;
+            if (attacker is null)
+                return HookResult.Continue;
+            
             var dndPlayerAttacker = CommonMethods.RetrievePlayer(attacker);
             var attackerSpecieEnum = (constants.DndSpecie) dndPlayerAttacker.DndSpecieId;
-            if (attackerSpecieEnum == constants.DndSpecie.Human)
+            if (attackerSpecieEnum == constants.DndSpecie.Human && @event.Attacker.Team != @event.Userid.Team)
             {
-                MessagePlayer(attacker, "You killed someone as a human");
+                DndEvent<EventPlayerDeath>.GrantPlayerExperience(dndPlayerAttacker, Dndcs2.HumanXP.Value, 
+                    Dndcs2.HumanXP.Description, nameof(HumanPostPlayerDeathEventFeature));
             }
             return HookResult.Continue;
         }
