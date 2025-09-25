@@ -11,15 +11,18 @@ public class DndClass : MetaDtoObject
     [Required]
     [MaxLength(100)]
     public string DndClassName { get; private set; }
+    [MaxLength(2000)]
+    public string DndClassDescription { get; private set; }
     public ICollection<DndClassRequirement> DndClassRequirements { get; } = new List<DndClassRequirement>();
 
     public DndClass(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled, 
-        int dndClassId, string dndClassName, Collection<DndClassRequirement> dndClassRequirements) : 
+        int dndClassId, string dndClassName, string dndClassDescription, Collection<DndClassRequirement> dndClassRequirements) : 
         base(createdBy, createDate, updatedBy, updatedDate, enabled)
     {
         DndClassId = dndClassId;
         DndClassName = dndClassName;
         DndClassRequirements = DndClassRequirements.Union(dndClassRequirements).ToList();
+        DndClassDescription = dndClassDescription;
     }
     
     // This is for EF. Do not use

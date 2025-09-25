@@ -1,25 +1,26 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities;
-using CounterStrikeSharp.API.Modules.Events;
 using Dndcs2.Sql;
 using Microsoft.Extensions.Logging;
 using static Dndcs2.messages.DndMessages;
 
 namespace Dndcs2.events;
 
-public class PlayerDisconnect<T, TU, TV> : DndBaseEvent<T, TU, TV>
-where T : GameEvent
-where TU : GameEvent
-where TV : GameEvent
-{            
-    public override HookResult PostHookCallback(TU e, GameEventInfo info)
-    {
-        var @event = ConvertEventType<EventPlayerDisconnect>(e);
+public class PlayerDisconnect : DndEvent<EventPlayerDisconnect>
+{
 
+    public PlayerDisconnect() : base()
+    {
+    
+    }
+
+    public override HookResult DefaultPostHookCallback(EventPlayerDisconnect @event, GameEventInfo info)
+    { 
         if (@event.Userid == null)
-            throw new Exception($"{GetType().Name} Userid was null");
+            throw new Exception($"{GetType().Name} Userid was null");        
         
-        BroadcastMessage($"See ya later, {@event.Userid.PlayerName}!");
+        PrintMessageToConsole($"See ya later, {@event.Userid.PlayerName}! {@event.Userid.SteamID}");
+        BroadcastMessage($"See ya later, {@event.Userid.PlayerName}! {@event.Userid.SteamID}");
         
         var accountId = new SteamID(@event.Userid.SteamID).AccountId;
         var dndPlayer = CommonMethods.RetrievePlayer(accountId);

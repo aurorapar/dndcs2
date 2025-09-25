@@ -15,10 +15,10 @@ public class DndcsContext : DbContext
     public DbSet<DndSpecieRequirement> DndSpecieRequirements { get; set; }
     
     public DbSet<DndPlayer> DndPlayers { get; set; }
-    public DbSet<DndPlayerClassExperience> DndPlayerClassExperiences { get; set; }
-    public DbSet<DndPlayerSpecieExperience> DndPlayerSpecieExperiences { get; set; }
-    
     public DbSet<DndPlayerStats> DndPlayerStats { get; set; }
+    public DbSet<DndClassProgress> DndClassProgresses { get; set; }
+    public DbSet<DndSpecieProgress> DndSpecieProgresses { get; set; }
+    
     public DbSet<DndExperienceLog> DndExperienceLogs { get; set; }
 
     public string DbPath { get; }

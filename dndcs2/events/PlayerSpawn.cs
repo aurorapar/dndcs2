@@ -1,17 +1,18 @@
 ﻿using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Events;
 using static Dndcs2.messages.DndMessages;
 
 namespace Dndcs2.events;
 
-public class PlayerSpawn<T, TU, TV> : DndBaseEvent<T, TU, TV>
-    where T : GameEvent
-    where TU : GameEvent
-    where TV : GameEvent
+public class PlayerSpawn : DndEvent<EventPlayerSpawn>
 {
-    public override HookResult PostHookCallback(TU e, GameEventInfo info)
+
+    public PlayerSpawn() : base()
     {
-        var @event = ConvertEventType<EventPlayerSpawn>(e);
+    
+    }
+
+    public override HookResult DefaultPostHookCallback(EventPlayerSpawn @event, GameEventInfo info)
+    {         
         if (@event.Userid == null)
             throw new Exception($"{GetType().Name} Userid was null");
         

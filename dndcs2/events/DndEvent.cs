@@ -1,32 +1,35 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
-using static Dndcs2.Dndcs2;
-using static Dndcs2.messages.DndMessages;
-namespace dndcs2.events;
 
-public abstract class DndEvent<T, TU, TV>
+namespace Dndcs2.events;
+
+public abstract class DndEvent<T> : DndEventContainer
     where T : GameEvent
-    where TU : GameEvent
-    where TV : GameEvent
-{       
-    public abstract HookResult PreHookCallback(T @event, GameEventInfo info);
-    public abstract HookResult PostHookCallback(TU @event, GameEventInfo info);
-    public abstract HookResult AnnounceHookCallback(TV @event, GameEventInfo info);
+{
+    public delegate HookResult EventCallback(T gameEvent, GameEventInfo info);
+    public List<DndClassSpecieEventFeatureContainer> PreEventCallbacks { get; private set; } = new();
+    public List<DndClassSpecieEventFeatureContainer> PostEventCallbacks { get; private set; } = new();
 
-    public DndEvent()        
+    public DndEvent()
     {
-        PrintMessageToConsole($"Event {typeof(T).Name} registering hooks");
-        Instance.RegisterEventHandler<T>(PreHookCallback, HookMode.Pre);
-        Instance.RegisterEventHandler<TU>(PostHookCallback, HookMode.Post);
-        Instance.RegisterEventHandler<TV>(AnnounceHookCallback, HookMode.Post);
+        Dndcs2.Instance.RegisterEventHandler<T>((@event, info) =>
+        {
+            return DefaultPreHookCallback(@event, info);
+        }, HookMode.Pre);
+        
+        Dndcs2.Instance.RegisterEventHandler<T>((@event, info) =>
+        {
+            return DefaultPostHookCallback(@event, info);
+        }, HookMode.Post);
     }
-
-    protected TW ConvertEventType<TW>(GameEvent @event) where TW : GameEvent
+    
+    public virtual HookResult DefaultPreHookCallback(T @event, GameEventInfo info)
     {
-        var e = @event as TW;
-        if(e is null)
-            throw new Exception($"Hook event of type {@event.GetType()} is not type of {typeof(T).Name}");
-        return e;
+        return HookResult.Continue;
+    }
+    
+    public virtual HookResult DefaultPostHookCallback(T @event, GameEventInfo info)
+    {
+        return HookResult.Continue;   
     }
 }
-

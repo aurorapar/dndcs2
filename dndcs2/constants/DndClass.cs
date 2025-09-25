@@ -1,6 +1,6 @@
 ﻿namespace Dndcs2.constants;
 
-public enum DndClasses
+public enum DndClass
 {
     Fighter = 1,
 }
