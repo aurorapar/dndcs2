@@ -33,6 +33,10 @@ public class PlayerSpawn : DndEvent<EventPlayerSpawn>
         RoundStart roundStartEvent = (RoundStart) DndEvent<EventRoundStart>.RetrieveEvent<EventRoundStart>();
         if(!roundStartEvent.XpRoundTracker.ContainsKey(dndPlayer.DndPlayerId))
             roundStartEvent.XpRoundTracker[dndPlayer.DndPlayerId] = new List<DndExperienceLog>();
+
+        PlayerDeath playerDeathEvent = (PlayerDeath) DndEvent<EventPlayerDeath>.RetrieveEvent<EventPlayerDeath>();
+        if (!playerDeathEvent.KillStreakTracker.ContainsKey(@event.Userid))
+            playerDeathEvent.KillStreakTracker[@event.Userid] = 0;
         
         var playTime = dndPlayer.PlayTimeHours + (DateTime.UtcNow - dndPlayer.LastConnected).TotalHours; 
         MessagePlayer(@event.Userid, $"Your total playtime: {(int) playTime} hours {(int)((playTime - (int) playTime)*60)} minutes");

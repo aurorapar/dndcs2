@@ -64,12 +64,17 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
         
         if(overrideFlag)
             return HookResult.Continue;
-
-        KillStreakTracker[victim] = 0;
+        
         if (!KillStreakTracker.ContainsKey(attacker))
             KillStreakTracker[attacker] = 0;
         if (attacker.Team != victim.Team)
         {
+            if (victim.IsBot)
+            {
+                GrantPlayerExperience(dndPlayerAttacker, Dndcs2.BotKilledXP.Value, Dndcs2.BotKilledXP.Description, GetType().Name);
+                return HookResult.Continue;
+            }
+            
             KillStreakTracker[attacker] += 1;
             var victimLevel = CommonMethods.RetrievePlayerClassProgress(victim).DndLevelAmount;
             var attackerLevel = CommonMethods.RetrievePlayerClassProgress(attacker).DndLevelAmount;
@@ -83,7 +88,7 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
                 else 
                     reason += Dndcs2.KillModifierHighXP.Description;
             }
-            
+            PrintMessageToConsole(@event.Weapon);
             GrantPlayerExperience(dndPlayerAttacker, amount, reason, GetType().Name);
             if(@event.Headshot)
                 GrantPlayerExperience(dndPlayerAttacker, Dndcs2.HeadShotXP.Value, Dndcs2.HeadShotXP.Description, GetType().Name);
@@ -91,6 +96,30 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
                 GrantPlayerExperience(dndPlayerAttacker, Dndcs2.KnifeXP.Value, Dndcs2.KnifeXP.Description, GetType().Name);
             else if(@event.Weapon.ToLower().Contains("grenade"))
                 GrantPlayerExperience(dndPlayerAttacker, Dndcs2.GrenadeXP.Value, Dndcs2.GrenadeXP.Description, GetType().Name);
+
+            if (KillStreakTracker[victim] >= 3)
+            {
+                GrantPlayerExperience(dndPlayerAttacker, Dndcs2.BountyXP.Value, string.Format(Dndcs2.BountyXP.Description, victim.PlayerName),
+                    GetType().Name);
+                BroadcastMessage($"A bounty was collected on {victim.PlayerName} for {Dndcs2.BountyXP.Value * KillStreakTracker[victim]}XP!");
+            }
+            
+            if (KillStreakTracker[attacker] >= 3)
+            {
+                GrantPlayerExperience(dndPlayerAttacker, Dndcs2.KillingSpreeXP.Value * KillStreakTracker[attacker], Dndcs2.KillingSpreeXP.Description,
+                    GetType().Name);
+                if(KillStreakTracker[attacker] == 3)
+                    BroadcastMessage($"{attacker.PlayerName} is on a killing spree! Collect their bounty for {Dndcs2.BountyXP.Value * KillStreakTracker[attacker]}XP!");
+                else 
+                    BroadcastMessage($"The bounty on {attacker.PlayerName} is increasing! They're worth {Dndcs2.BountyXP.Value * KillStreakTracker[attacker]}XP!");
+            }
+
+            if (@event.Assister != null)
+            {
+                var dndAssister = CommonMethods.RetrievePlayer(@event.Assister);
+                GrantPlayerExperience(dndAssister, Dndcs2.AssistXP.Value, String.Format(Dndcs2.AssistXP.Description,
+                    attacker.PlayerName), GetType().Name);
+            }
         }
         else
         {
@@ -100,6 +129,8 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
                 true, dndPlayerAttacker.DndPlayerId, Dndcs2.TeamKillXP.Value, Dndcs2.TeamKillXP.Description);
             CommonMethods.GrantExperience(attacker, xpLogItem);
         }
+        
+        KillStreakTracker[victim] = 0;
         
         return HookResult.Continue;
     }

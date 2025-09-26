@@ -18,9 +18,8 @@ public partial class Dndcs2
     public static FakeConVar<int> BombPlantedXP = new ("DndBombPlantedXP", "Planting the bomb!", 100);
     public static FakeConVar<int> BombExplodedXP = new ("DndBombExplodedXP", "Your bomb plant exploding!", 50);
     public static FakeConVar<int> BombDefusedXP = new ("Dnd.BombDefusedXP", "Defusing the bomb!", 100);
-    public static FakeConVar<int> BonbDefusedWithEnemiesXP = new ("DndBombDefusedWithEnemiesXP", "Defusing the bomb while enemies are alive!", 150);
+    public static FakeConVar<int> BombDefusedWithEnemiesXP = new ("DndBombDefusedWithEnemiesXP", "Defusing the bomb while enemies are alive!", 150);
     public static FakeConVar<int> HostageRescuedXP = new ("DndHostageRescued", "Rescuing a hostage!", 50);
-    public static FakeConVar<int> HostagedSecuredXP = new ("DndHostageSecured", "Preventing a hostage from being rescued!", 50);
     public static FakeConVar<int> HostageKilledXP = new ("DndHostageKilled", "Killing a hostage!", 35);
     public static FakeConVar<int> RoundWonXP = new ("DndRoundWonXP", "Winning the round!", 35);
     public static FakeConVar<int> BotKilledXP = new ("DndBotKilledXP", "Killing a bot.", 25);

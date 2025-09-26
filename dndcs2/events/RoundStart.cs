@@ -1,5 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using static Dndcs2.messages.DndMessages;
 using Dndcs2.constants;
 using Dndcs2.dtos;
 using Dndcs2.Sql;
@@ -16,7 +17,7 @@ public class RoundStart : DndEvent<EventRoundStart>
     }
 
     public override HookResult DefaultPostHookCallback(EventRoundStart @event, GameEventInfo info)
-    {
+    {        
         foreach (var player in Utilities.GetPlayers())
         {            
             var dndPlayer = CommonMethods.RetrievePlayer(player);

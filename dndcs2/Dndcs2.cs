@@ -212,6 +212,7 @@ public partial class Dndcs2 : BasePlugin
         foreach (var player in Utilities.GetPlayers())
         {
             var dndPlayer = CommonMethods.RetrievePlayer(player);
+            CommonMethods.TrackPlayerLogout(dndPlayer, "Mod unloading");
             roundEndEvent.DoDefaultPostCallback(5, player, dndPlayer);    
         }
         

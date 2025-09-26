@@ -61,19 +61,27 @@ public class RoundEnd : DndEvent<EventRoundEnd>
     {
         RoundStart roundStartEvent = (RoundStart) DndEvent<EventRoundStart>.RetrieveEvent<EventRoundStart>();
         var xpEvents = roundStartEvent.XpRoundTracker[dndPlayer.DndPlayerId];
+        
         if(winner == (int) player.Team)
-            xpEvents.Add(new DndExperienceLog(GetType().Name, DateTime.UtcNow, GetType().Name, 
-                DateTime.UtcNow, true, dndPlayer.DndPlayerId, Dndcs2.RoundWonXP.Value, 
-                Dndcs2.RoundWonXP.Description));
-        else 
-            MessagePlayer(player, "You were not on the winning team.");
+            GrantPlayerExperience(dndPlayer, Dndcs2.RoundWonXP.Value, Dndcs2.RoundWonXP.Description, GetType().Name);
+
+        var hostages = Utilities.GetAllEntities().Where(e => e.DesignerName.Contains("hostage")).ToList();
+        BroadcastMessage($"There are {hostages.Count()} hostages");
+        
         if (xpEvents.Any())
         {
-            MessagePlayer(player, "You earned XP for:");
-            foreach (var xpEvent in xpEvents)
+            MessagePlayer(player, $"You earned {xpEvents.Select(e => e.ExperienceAmount).Sum()} XP for:");
+            foreach (var xpEvent in xpEvents.GroupBy(e => e.Reason).ToList())
             {
-                player.PrintToChat($"     {ChatColors.White}{xpEvent.Reason} ({ChatColors.Green}{xpEvent.ExperienceAmount})");
-                CommonMethods.GrantExperience(player, xpEvent);
+                var @event = xpEvent.First();
+                int counts = xpEvents.Count(e => e.Reason == @event.Reason);
+                int totalEventXp = xpEvents.Where(e => e.Reason == @event.Reason).Select(e => e.ExperienceAmount).Sum();
+                
+                string xpMessage = $" {ChatColors.White}{counts}x {@event.Reason} ({ChatColors.Green}{totalEventXp})";                
+                
+                player.PrintToChat(xpMessage);
+                foreach(var e in xpEvents.Where(e => e.Reason ==@event.Reason))
+                    CommonMethods.GrantExperience(player, e);
             }
         }        
     }
