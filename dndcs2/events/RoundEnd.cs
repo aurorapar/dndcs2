@@ -64,9 +64,6 @@ public class RoundEnd : DndEvent<EventRoundEnd>
         
         if(winner == (int) player.Team)
             GrantPlayerExperience(dndPlayer, Dndcs2.RoundWonXP.Value, Dndcs2.RoundWonXP.Description, GetType().Name);
-
-        var hostages = Utilities.GetAllEntities().Where(e => e.DesignerName.Contains("hostage")).ToList();
-        BroadcastMessage($"There are {hostages.Count()} hostages");
         
         if (xpEvents.Any())
         {

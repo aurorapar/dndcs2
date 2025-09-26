@@ -130,6 +130,8 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
             CommonMethods.GrantExperience(attacker, xpLogItem);
         }
         
+        Dndcs2.ShowDndXp(victim, attacker);
+        
         KillStreakTracker[victim] = 0;
         
         return HookResult.Continue;

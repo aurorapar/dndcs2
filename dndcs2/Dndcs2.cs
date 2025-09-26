@@ -23,7 +23,9 @@ public partial class Dndcs2 : BasePlugin
     public static ILogger DndLogger { get; }
     public Dictionary<constants.DndClass, DndClass> DndClassLookup { get; private set; } = new();
     public Dictionary<constants.DndSpecie, DndSpecie> DndSpecieLookup { get; private set; } = new();
-    public List<DndEventContainer> DndEvents { get; private set; } = new();
+    
+    private CCSGameRules? _gameRules;
+    private bool _gameRulesInitialized;
 
     static Dndcs2()
     {
@@ -44,23 +46,52 @@ public partial class Dndcs2 : BasePlugin
         using(var connection = new DndcsContext())
             connection.EnsureCreated();
 
+        RegisterListeners(hotreload);
+        RegisterCommands();
         RegisterEventCallbacks();
         RegisterClassesSpecies();
         
         DndLogger.LogInformation("Loaded plugin");
-    }    
-    
-    public void RegisterEventCallbacks()
+    }
+
+    public void RegisterListeners(bool hotReload)
     {
-        DndEvents = new List<DndEventContainer>()
+        RegisterListener<Listeners.OnTick>(OnTick);
+        RegisterListener<Listeners.OnMapStart>(OnMapStartHandler);
+
+        if (hotReload)
         {
-            new PlayerDeath(),
-            new PlayerConnectFull(),
-            new PlayerDisconnect(),
-            new PlayerSpawn(),
-            new RoundStart(),
-            new RoundEnd()
-        };
+            InitializeGameRules();
+        }
+    }
+    
+    public void OnMapStartHandler(string mapName)
+    {
+        _gameRules = null;
+        _gameRulesInitialized = false;
+    }
+    
+    private void InitializeGameRules()
+    {
+        if (_gameRulesInitialized) return;
+            
+        var gameRulesProxy = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").FirstOrDefault();
+        _gameRules = gameRulesProxy?.GameRules;
+        _gameRulesInitialized = _gameRules != null;
+    }
+    
+    private void OnTick()
+    {
+        if (!_gameRulesInitialized)
+        {
+            InitializeGameRules();
+            return;
+        }
+
+        if (_gameRules != null)
+        {
+            _gameRules.GameRestart = _gameRules.RestartRoundTime < Server.CurrentTime;
+        }
     }
 
     public void RegisterClassesSpecies()

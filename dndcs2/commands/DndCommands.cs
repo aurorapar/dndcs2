@@ -1,29 +1,46 @@
 ﻿using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
-using static Dndcs2.messages.DndMessages;
-using Dndcs2.constants;
-using Dndcs2.dtos;
-using Dndcs2.Sql;
+using CounterStrikeSharp.API.Modules.Events;
+using Dndcs2.commands;
 
 namespace Dndcs2;
 
 public partial class Dndcs2
 {
-    [ConsoleCommand("dndxp", "Shows player their XP")]
-    public void DndXp(CCSPlayerController? player, CommandInfo command)
+    private void RegisterCommands()
     {
-        if (player == null) 
-            return;        
-
-        DndPlayer dndPlayer = CommonMethods.RetrievePlayer(player);
-        DndClassProgress classProgress = CommonMethods.RetrievePlayerClassProgress(player);
-        DndSpecieProgress specieProgress = CommonMethods.RetrievePlayerSpecieProgress(player);
-        string message =
-            $"Level {classProgress.DndLevelAmount} {(constants.DndClass)dndPlayer.DndClassId} ({classProgress.DndExperienceAmount}/{classProgress.DndLevelAmount * 1000})";
-        MessagePlayer(player, message);
-        message =
-            $"Level {specieProgress.DndLevelAmount} {(constants.DndSpecie)dndPlayer.DndSpecieId} ({specieProgress.DndExperienceAmount}/{specieProgress.DndLevelAmount * 1000})";
-        MessagePlayer(player, message);
+        var dndXp = new DndXp();
+        var dndInfo = new DndInfo();
+        var dndMenu = new DndMenu();
+        var playerinfo = new DndPlayerInfo();
     }
+}
+
+public abstract class DndCommand
+{
+    public string CommandName { get; private set; }
+    public string CommandDescription { get; private set; }
+
+    public DndCommand(string commandName, string commandDescription)
+    {
+        CommandName = commandName;
+        CommandDescription = commandDescription;
+        
+        Dndcs2.Instance.RegisterEventHandler<EventPlayerChat>((@event, info) =>
+        {
+            if(@event.Text.Equals(CommandName) || @event.Text.StartsWith(CommandName + " "))
+                return ChatHandler(@event, info);
+            return HookResult.Continue;
+        });
+        
+        Dndcs2.Instance.AddCommand(CommandName, CommandDescription, (player, info) =>
+        {
+            if (player == null) return;
+            CommandHandler(player, info);
+        });
+        
+    }
+    
+    public abstract void CommandHandler(CCSPlayerController? player, CommandInfo command);
+    public abstract HookResult ChatHandler(EventPlayerChat @event, GameEventInfo info);
 }

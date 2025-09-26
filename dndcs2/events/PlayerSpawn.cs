@@ -10,7 +10,7 @@ public class PlayerSpawn : DndEvent<EventPlayerSpawn>
 
     public PlayerSpawn() : base()
     {
-    
+        
     }
 
     public override HookResult DefaultPostHookCallback(EventPlayerSpawn @event, GameEventInfo info)
@@ -38,8 +38,9 @@ public class PlayerSpawn : DndEvent<EventPlayerSpawn>
         if (!playerDeathEvent.KillStreakTracker.ContainsKey(@event.Userid))
             playerDeathEvent.KillStreakTracker[@event.Userid] = 0;
         
-        var playTime = dndPlayer.PlayTimeHours + (DateTime.UtcNow - dndPlayer.LastConnected).TotalHours; 
-        MessagePlayer(@event.Userid, $"Your total playtime: {(int) playTime} hours {(int)((playTime - (int) playTime)*60)} minutes");
+        Dndcs2.ShowDndXp(@event.Userid, @event.Userid);
+        if(dndPlayer.PlayTimeHours < 5)
+            MessagePlayer(@event.Userid, "Command for the mod are 'dndinfo', 'dndmenu', and 'dndxp'");
         
         return HookResult.Continue;   
     }    

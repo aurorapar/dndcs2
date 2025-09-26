@@ -29,7 +29,7 @@ public class Human : DndBaseSpecie
     public class HumanPostPlayerDeathEventFeature : DndClassSpecieEventFeature<EventPlayerDeath>
     {
         public HumanPostPlayerDeathEventFeature(bool overrideDefaultBehavior, DndClassSpecieEventPriority priority, 
-            HookMode hookMode, Func<EventPlayerDeath, GameEventInfo, HookResult> callback, DndClass? dndClass = null, 
+            HookMode hookMode, Func<EventPlayerDeath, GameEventInfo, HookResult> callback, constants.DndClass? dndClass = null, 
             constants.DndSpecie? dndSpecie = null) : 
             base(overrideDefaultBehavior, priority, hookMode, callback, dndClass, dndSpecie)
         {
@@ -37,7 +37,6 @@ public class Human : DndBaseSpecie
 
         public static HookResult PlayerDeathPost(EventPlayerDeath @event, GameEventInfo info)
         {
-            PrintMessageToConsole("Someone dieded");
             var attacker = @event.Attacker;
             if (attacker is null)
                 return HookResult.Continue;

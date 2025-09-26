@@ -9,7 +9,7 @@ public class BombPlant : DndEvent<EventBombPlanted>
 
     public BombPlant() : base()
     {
-        
+
     }
 
     public override HookResult DefaultPostHookCallback(EventBombPlanted @event, GameEventInfo info)

@@ -1,8 +1,31 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
 using Dndcs2.dtos;
+using Dndcs2.events;
 
-namespace Dndcs2.events;
+namespace Dndcs2;
+
+public partial class Dndcs2
+{
+    public List<DndEventContainer> DndEvents { get; private set; } = new();
+    public void RegisterEventCallbacks()
+    {
+        DndEvents = new List<DndEventContainer>()
+        {
+            new PlayerDeath(),
+            new PlayerConnectFull(),
+            new PlayerDisconnect(),
+            new PlayerSpawn(),
+            new RoundStart(),
+            new RoundEnd(),
+            new BombDefused(),
+            new BombExplode(),
+            new BombPlant(),
+            new HostageKilled(),
+            new HostageRescued()
+        };
+    }
+}
 
 public abstract class DndEvent<T> : DndEventContainer
     where T : GameEvent
