@@ -1,5 +1,8 @@
-﻿using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Menu;
 using CounterStrikeSharp.API.Modules.Utils;
+using CS2MenuManager.API.Menu;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.dtos;
 using Dndcs2.events;
@@ -12,7 +15,11 @@ public partial class Dndcs2
     public static void ShowDndXp(CCSPlayerController player, CCSPlayerController target)
     {
         DndPlayer dndPlayer = CommonMethods.RetrievePlayer(target);
-        player.PrintToCenterHtml(GetPlayerStats(target, dndPlayer).Replace("\n", "<br>"));
+        MenuManager.CloseActiveMenu(player);
+        Server.NextFrame(() =>
+        {
+            player.PrintToCenterHtml(GetPlayerStats(target, dndPlayer).Replace("\n", "<br>")); 
+        });
     }
     
     public static void ShowDndInfo(CCSPlayerController player)

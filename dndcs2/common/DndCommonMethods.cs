@@ -22,6 +22,6 @@ public partial class Dndcs2
         string specieMessage =
             $"Level {specieProgress.DndLevelAmount} {(constants.DndSpecie)dndPlayer.DndSpecieId} ({specieProgress.DndExperienceAmount}/{specieProgress.DndLevelAmount * 1000})";
         
-        return $"D&D Stats for {player.PlayerName}\n{GetTotalPlayTime(dndPlayer)}\n{classMessage}\n{specieMessage}";
+        return $"<font size=\"24\">D&D Stats for {player.PlayerName}\n{GetTotalPlayTime(dndPlayer)}\n{classMessage}\n{specieMessage}</font>";
     }
 }

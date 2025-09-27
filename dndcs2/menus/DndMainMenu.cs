@@ -20,7 +20,7 @@ public class DndMainMenu : PlayerMenu
 
     public void ShowInfo(CCSPlayerController player, ItemOption selectedOption)
     {
-        Dndcs2.ShowDndInfo(player);
+        Dndcs2.ShowDndXp(player, player);
     }
     
     public void ShowClasses(CCSPlayerController player, ItemOption selectedOption)
