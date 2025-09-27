@@ -58,28 +58,10 @@ public class RoundEnd : DndEvent<EventRoundEnd>
     }
 
     public void DoDefaultPostCallback(int winner, CCSPlayerController player, DndPlayer dndPlayer)
-    {
-        RoundStart roundStartEvent = (RoundStart) DndEvent<EventRoundStart>.RetrieveEvent<EventRoundStart>();
-        var xpEvents = roundStartEvent.XpRoundTracker[dndPlayer.DndPlayerId];
-        
+    {        
         if(winner == (int) player.Team)
             GrantPlayerExperience(dndPlayer, Dndcs2.RoundWonXP.Value, Dndcs2.RoundWonXP.Description, GetType().Name);
-        
-        if (xpEvents.Any())
-        {
-            MessagePlayer(player, $"You earned {xpEvents.Select(e => e.ExperienceAmount).Sum()} XP for:");
-            foreach (var xpEvent in xpEvents.GroupBy(e => e.Reason).ToList())
-            {
-                var @event = xpEvent.First();
-                int counts = xpEvents.Count(e => e.Reason == @event.Reason);
-                int totalEventXp = xpEvents.Where(e => e.Reason == @event.Reason).Select(e => e.ExperienceAmount).Sum();
-                
-                string xpMessage = $" {ChatColors.White}{counts}x {@event.Reason} ({ChatColors.Green}{totalEventXp})";                
-                
-                player.PrintToChat(xpMessage);
-                foreach(var e in xpEvents.Where(e => e.Reason ==@event.Reason))
-                    CommonMethods.GrantExperience(player, e);
-            }
-        }        
+
+        Dndcs2.ProcessPlayerXp(player);
     }
 }

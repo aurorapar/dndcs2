@@ -251,5 +251,21 @@ public static class CommonMethods
         }
             
     }
+
+    public static List<string> RetrieveDndXpLogs(CCSPlayerController player, int amount=10)
+    {
+        var dndPlayer = RetrievePlayer(player);
+        var logs = new List<string>();
+        using (var connection = CreateContext())
+        {
+            connection.DndExperienceLogs
+                .Where(l => l.DndPlayerId == dndPlayer.DndPlayerId)
+                .OrderByDescending(l => l.CreateDate)
+                .Take(amount).ToList()
+                .ForEach(l => logs.Add($"{l.ExperienceLogId} {l.Reason} {l.ExperienceAmount} {l.CreateDate} {l.UpdatedDate}"));
+            
+        }
+        return logs;
+    }
     
 }

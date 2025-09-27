@@ -1,4 +1,5 @@
-﻿using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.constants;
 using Dndcs2.dtos;
@@ -123,11 +124,16 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
         }
         else
         {
-            // Doing this immediately so that people get the *right* idea 
-            MessagePlayer(attacker, string.Format("You lost {0} experience for {1}", Dndcs2.TeamKillXP.Value, Dndcs2.TeamKillXP.Description));
-            var xpLogItem = new DndExperienceLog(GetType().Name, DateTime.UtcNow, GetType().Name, DateTime.UtcNow, 
-                true, dndPlayerAttacker.DndPlayerId, Dndcs2.TeamKillXP.Value, Dndcs2.TeamKillXP.Description);
-            CommonMethods.GrantExperience(attacker, xpLogItem);
+            if (Utilities.GetPlayers().Contains(attacker) && victim != attacker) // disconnecting counts as a suicide
+            {
+                PrintMessageToConsole($"{attacker.PlayerName} team killed {victim.PlayerName}");
+                MessagePlayer(attacker,
+                    string.Format("You lost {0} experience for {1}", Dndcs2.TeamKillXP.Value,
+                        Dndcs2.TeamKillXP.Description));
+                var xpLogItem = new DndExperienceLog(GetType().Name, DateTime.UtcNow, GetType().Name, DateTime.UtcNow,
+                    true, dndPlayerAttacker.DndPlayerId, Dndcs2.TeamKillXP.Value, Dndcs2.TeamKillXP.Description);
+                CommonMethods.GrantExperience(attacker, xpLogItem);
+            }
         }
         
         Dndcs2.ShowDndXp(victim, attacker);

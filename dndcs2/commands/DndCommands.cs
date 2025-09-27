@@ -13,6 +13,7 @@ public partial class Dndcs2
         var dndInfo = new DndInfo();
         var dndMenu = new DndMenu();
         var playerinfo = new DndPlayerInfo();
+        var dndXpLog = new DndXpLog();
     }
 }
 
