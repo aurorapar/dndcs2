@@ -34,7 +34,6 @@ public abstract class DndBaseClass : DndClass
 
         public static HookResult SetBaseStats(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayerVictim, DndPlayer? notUsed)
         {
-            int MaxHealth = 100;
             return HookResult.Continue;
         }
     }
