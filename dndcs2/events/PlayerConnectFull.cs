@@ -2,6 +2,7 @@
 using Dndcs2.dtos;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.Sql;
+using Dndcs2.stats;
 
 namespace Dndcs2.events;
 
@@ -30,6 +31,7 @@ public class PlayerConnectFull: DndEvent<EventPlayerConnectFull>
         dndPlayer = CommonMethods.RetrievePlayer(@event.Userid, true);
         var playTime = dndPlayer.PlayTimeHours + (DateTime.UtcNow - dndPlayer.LastConnected).TotalHours; 
         MessagePlayer(@event.Userid, $"Your total playtime: {(int) playTime} hours {(int)((playTime - (int) playTime)*60)} minutes");
+        Dndcs2.Instance.PlayerBaseStats.Add(new PlayerBaseStats((int) @event.Userid.UserId));
         return HookResult.Continue;
     }
 

@@ -77,8 +77,8 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
             }
             
             KillStreakTracker[attacker] += 1;
-            var victimLevel = CommonMethods.RetrievePlayerClassProgress(victim).DndLevelAmount;
-            var attackerLevel = CommonMethods.RetrievePlayerClassProgress(attacker).DndLevelAmount;
+            var victimLevel = CommonMethods.RetrievePlayerClassLevel(victim);
+            var attackerLevel = CommonMethods.RetrievePlayerClassLevel(attacker);
             int amount = Dndcs2.KillXP.Value;
             string reason = Dndcs2.KillXP.Description;
             if (victimLevel != attackerLevel)

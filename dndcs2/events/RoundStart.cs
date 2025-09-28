@@ -4,6 +4,7 @@ using static Dndcs2.messages.DndMessages;
 using Dndcs2.constants;
 using Dndcs2.dtos;
 using Dndcs2.Sql;
+using Dndcs2.timers;
 
 namespace Dndcs2.events;
 
@@ -52,7 +53,7 @@ public class RoundStart : DndEvent<EventRoundStart>
                 if(!feature.OverrideDefaultBehavior)
                     DoDefaultPostCallback(@event, info, dndPlayer);
             };
-        }        
+        }
         
         return HookResult.Continue;
     }

@@ -21,7 +21,7 @@ public class PlayerDisconnect : DndEvent<EventPlayerDisconnect>
         
         var dndPlayer = CommonMethods.RetrievePlayer(@event.Userid);
         CommonMethods.TrackPlayerLogout(dndPlayer, GetType().Name);
-        
+        Dndcs2.Instance.PlayerBaseStats.Remove(Dndcs2.Instance.PlayerBaseStats.Where(b => b.Userid == (int) @event.Userid.UserId).FirstOrDefault());
         return HookResult.Continue;
     }
 }

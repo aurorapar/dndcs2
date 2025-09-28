@@ -1,6 +1,8 @@
 ﻿using System.Collections.Immutable;
+using System.Reflection;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Menu;
 using CounterStrikeSharp.API.Modules.Utils;
 using static Dndcs2.messages.DndMessages;
@@ -44,6 +46,13 @@ public partial class Dndcs2
         .AddRange(Snipers)
         .AddRange(Grenades)
     ;
+
+    // public void RegisterListener<T>(T handler) where T : Delegate
+    public static void UnregisterListener<T>(T handler) where T : Delegate
+    {
+        var listenerName = typeof(T).GetCustomAttribute<ListenerNameAttribute>()?.Name;
+        
+    }
          
     public static void ShowDndXp(CCSPlayerController player, CCSPlayerController target)
     {

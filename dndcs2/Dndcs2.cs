@@ -9,6 +9,7 @@ using static Dndcs2.constants.DndSpecieDescription;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using Dndcs2.Sql;
+using Dndcs2.stats;
 
 namespace Dndcs2;
 
@@ -23,6 +24,7 @@ public partial class Dndcs2 : BasePlugin
     public static ILogger DndLogger { get; }
     public Dictionary<constants.DndClass, DndClass> DndClassLookup { get; private set; } = new();
     public Dictionary<constants.DndSpecie, DndSpecie> DndSpecieLookup { get; private set; } = new();
+    public List<PlayerBaseStats> PlayerBaseStats { get; private set; } = new();
     
     private CCSGameRules? _gameRules;
     private bool _gameRulesInitialized;

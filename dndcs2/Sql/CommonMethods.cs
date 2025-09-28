@@ -267,5 +267,16 @@ public static class CommonMethods
         }
         return logs;
     }
+
+    public static int RetrievePlayerClassLevel(CCSPlayerController player)
+    {
+        return RetrievePlayerClassProgress(player).DndLevelAmount;
+    }
     
+    public static int RetrievePlayerSpecieLevel(CCSPlayerController player)
+    {
+        return RetrievePlayerSpecieProgress(player).DndLevelAmount;
+    }
+
+
 }
