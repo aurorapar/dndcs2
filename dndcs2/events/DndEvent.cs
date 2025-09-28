@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API.Modules.Events;
 using Dndcs2.dtos;
 using Dndcs2.events;
+using static Dndcs2.messages.DndMessages;
 
 namespace Dndcs2;
 
@@ -18,6 +19,7 @@ public partial class Dndcs2
             new PlayerDisconnect(),
             new PlayerSpawn(),
             new RoundStart(),
+            new RoundStartPreEntity(),
             new RoundEnd(),
             new BombDefused(),
             new BombExplode(),
@@ -32,8 +34,8 @@ public abstract class DndEvent<T> : DndEventContainer
     where T : GameEvent
 {
     public delegate HookResult EventCallback(T gameEvent, GameEventInfo info);
-    public List<DndClassSpecieEventFeatureContainer> PreEventCallbacks { get; private set; } = new();
-    public List<DndClassSpecieEventFeatureContainer> PostEventCallbacks { get; private set; } = new();
+    public List<EventCallbackFeatureContainer> PreEventCallbacks { get; private set; } = new();
+    public List<EventCallbackFeatureContainer> PostEventCallbacks { get; private set; } = new();
 
     public DndEvent()
     {
@@ -41,11 +43,13 @@ public abstract class DndEvent<T> : DndEventContainer
         {
             return DefaultPreHookCallback(@event, info);
         }, HookMode.Pre);
+        PrintMessageToConsole($"Registered pre hook for {GetType().Name}");
         
         Dndcs2.Instance.RegisterEventHandler<T>((@event, info) =>
         {
             return DefaultPostHookCallback(@event, info);
         }, HookMode.Post);
+        PrintMessageToConsole($"Registered post hook for {GetType().Name}");
     }
     
     public virtual HookResult DefaultPreHookCallback(T @event, GameEventInfo info)

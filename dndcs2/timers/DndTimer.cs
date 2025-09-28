@@ -1,11 +1,17 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using Dndcs2.constants;
+using Dndcs2.dtos;
+using Dndcs2.events;
 using static Dndcs2.messages.DndMessages;
+using DndClass = Dndcs2.constants.DndClass;
+using DndSpecie = Dndcs2.constants.DndSpecie;
 
 namespace Dndcs2.timers;
 
 public abstract class DndTimer
 {
+    public float StartTime { get; private set; } = 0;
     public float Duration {get; private set;}
     public float Frequency {get; private set;}
     public int? Iterations { get; private set; }
@@ -18,33 +24,45 @@ public abstract class DndTimer
         
         Dndcs2.Instance.RegisterListener<Listeners.OnTick>(TickEventListener);
         
-        Dndcs2.Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
-        {
-            Stop();
-            return HookResult.Continue;
-        }, HookMode.Pre);
+        var erspeDndEvent = DndEvent<EventRoundStartPreEntity>.RetrieveEvent<EventRoundStartPreEntity>();
+        erspeDndEvent.PostEventCallbacks.Add(
+            new ListenerRemover(
+                (@event, gameEventInfo, dndPlayer, notUsedDndPlayer) =>
+                {
+                    Dndcs2.Instance.RemoveListener<Listeners.OnTick>(TickEventListener);
+                    return HookResult.Continue;
+                }
+            )
+        );
     }
 
     public void Stop()
     {
-        Dndcs2.Instance.RemoveListener<Listeners.OnTick>(TickEventListener);
+        
     }
 
     public void TickEventListener()
     {
-        if (Iterations != null && Iterations < 1)
+        StartTime += Server.TickInterval;
+        if (StartTime % Frequency == 0)
         {
-            Stop();
-            return;
+            Fire();
+            if(Iterations.HasValue)
+                Iterations--;
         }
 
-        if ((int)(Duration / Frequency) != (int)((Duration - Server.TickInterval) / Frequency))
-            Fire();
-
-        Duration -= Server.TickInterval;
-        if(Duration <= 0)
+        if (StartTime >= Duration || (Iterations.HasValue & Iterations <= 0))
             Stop();
     }
 
     public abstract void Fire();
+
+    public class ListenerRemover : EventCallbackFeature<EventRoundStartPreEntity>
+    {
+        public ListenerRemover(Func<EventRoundStartPreEntity, GameEventInfo, DndPlayer, DndPlayer?, HookResult> callback) : 
+            base(false, EventCallbackFeaturePriority.High, HookMode.Pre, callback, null, null)
+        {
+            
+        }        
+    }
 }

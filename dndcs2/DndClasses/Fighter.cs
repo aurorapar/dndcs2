@@ -5,6 +5,7 @@ using Dndcs2.constants;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using Dndcs2.Sql;
+using Dndcs2.stats;
 
 namespace Dndcs2.DndClasses;
 
@@ -16,15 +17,16 @@ public class Fighter : DndBaseClass
             Enum.GetName(typeof(constants.DndClass), constants.DndClass.Fighter), 
             dndClassDescription, dndClassRequirements)
     {
-        DndClassSpecieEvents.Add(        
-            new FighterExtraPistolDamage()            
-        );
+        DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
+            new FighterExtraPistolDamage(),
+            new FighterExtraHealth()
+        });
     }
     
-    public class FighterExtraPistolDamage : DndClassSpecieEventFeature<EventPlayerHurt>
+    public class FighterExtraPistolDamage : EventCallbackFeature<EventPlayerHurt>
     {
         public FighterExtraPistolDamage() : 
-            base(false, DndClassSpecieEventPriority.Medium, HookMode.Pre, PlayerHurtPre, 
+            base(false, EventCallbackFeaturePriority.Medium, HookMode.Pre, PlayerHurtPre, 
                 constants.DndClass.Fighter, null)
         {
             PrintMessageToConsole("Creating " + GetType().Name);
@@ -36,18 +38,46 @@ public class Fighter : DndBaseClass
             var attacker = @event.Attacker;
             var victim = @event.Userid;
             var attackerClassEnum = (constants.DndClass) dndPlayerAttacker.DndClassId;
-            if (attackerClassEnum == constants.DndClass.Fighter && attacker.Team != victim.Team)
-            {
-                var weapon = Dndcs2.GetPlayerWeapon(attacker);
-                if(weapon == null)
-                    return HookResult.Continue;
+            
+            if(attackerClassEnum != constants.DndClass.Fighter )
+                return HookResult.Continue;
+            
+            if (attacker.Team == victim.Team)
+                return HookResult.Continue;
+            
+            var weapon = Dndcs2.GetPlayerWeapon(attacker);
+            if(weapon == null)
+                return HookResult.Continue;
 
-                if (Dndcs2.Pistols.Contains(weapon))
-                {
-                    Dndcs2.UpdatePrehookDamage(@event, (int) (@event.DmgHealth * 1.25));
-                    return HookResult.Changed;
-                }
-            }
+            if (!Dndcs2.Pistols.Contains(weapon))
+                return HookResult.Continue;
+            
+            Dndcs2.UpdatePrehookDamage(@event, (int) (@event.DmgHealth * 1.25));
+            return HookResult.Changed;
+        }
+    }
+    
+    public class FighterExtraHealth : EventCallbackFeature<EventPlayerSpawn>
+    {
+        public FighterExtraHealth() : 
+            base(false, EventCallbackFeaturePriority.Medium, HookMode.Post, PlayerPostSpawn, 
+                constants.DndClass.Fighter, null)
+        {
+            PrintMessageToConsole("Creating " + GetType().Name);
+        }
+
+        public static HookResult PlayerPostSpawn(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer,
+            DndPlayer? dndPlayerAttacker)
+        {
+            if (@event.Userid == null || @event.Userid.UserId == null)
+                return HookResult.Continue;
+            if ((constants.DndClass)dndPlayer.DndClassId != constants.DndClass.Fighter)
+                return HookResult.Continue;
+            
+            var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
+            var fighterLevel = CommonMethods.RetrievePlayerClassLevel(@event.Userid);
+            MessagePlayer(@event.Userid, $"You gained {5 * fighterLevel} bonus health for being a Level {fighterLevel} {constants.DndClass.Fighter}");
+            playerBaseStats.ChangeMaxHealth(5 * fighterLevel);
             return HookResult.Continue;
         }
     }

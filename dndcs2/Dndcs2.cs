@@ -6,6 +6,7 @@ using Dndcs2.DndClasses;
 using Dndcs2.DndSpecies;
 using static Dndcs2.constants.DndClassDescription;
 using static Dndcs2.constants.DndSpecieDescription;
+using static Dndcs2.messages.DndMessages;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using Dndcs2.Sql;

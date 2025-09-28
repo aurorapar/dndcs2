@@ -9,26 +9,33 @@ using DndSpecie = Dndcs2.constants.DndSpecie;
 
 namespace Dndcs2.events;
 
-public abstract class DndClassSpecieEventFeature<T> : DndClassSpecieEventFeatureContainer
+public abstract class EventCallbackFeature<T> : EventCallbackFeatureContainer
     where T : GameEvent
 {
     public DndEvent<T> BaseEvent { get; private set; }
     public bool OverrideDefaultBehavior { get; private set; }
-    public DndClassSpecieEventPriority Priority { get; private set; }
+    public EventCallbackFeaturePriority CallbackFeaturePriority { get; private set; }
     public HookMode @HookMode { get; private set; }
-    public Func<T, GameEventInfo, DndPlayer, DndPlayer?, HookResult> Callback { get; private set; }
+    public Func<T, GameEventInfo, DndPlayer, DndPlayer?, HookResult> Callback { get; protected set; }
     public DndClass? DndClass { get; private set; }
     public DndSpecie? DndSpecie { get; private set; }
+    private static List<string> AllowedNullEvents = new List<string>()
+    {
+        "PlayerBaseStatResetter",
+        "BaseStats"
+    };
 
-    public DndClassSpecieEventFeature(bool overrideDefaultBehavior, DndClassSpecieEventPriority priority,
+    public EventCallbackFeature(bool overrideDefaultBehavior, EventCallbackFeaturePriority callbackFeaturePriority,
         HookMode hookMode,
         Func<T, GameEventInfo, DndPlayer, DndPlayer?, HookResult> callback, DndClass? dndClass = null, DndSpecie? dndSpecie = null)
     {
-        if (dndClass == null && dndSpecie == null && GetType().Name != "BaseStats")
-            throw new Exception($"Do not have an overriding class or specie behavior for {typeof(T).Name}");
+        if (dndClass == null && dndSpecie == null 
+             && !AllowedNullEvents.Contains(GetType().Name)
+        )
+            throw new Exception($"Do not have an overriding class or specie behavior for {GetType().Name}");
 
         OverrideDefaultBehavior = overrideDefaultBehavior;
-        Priority = priority;
+        CallbackFeaturePriority = callbackFeaturePriority;
         @HookMode = hookMode;
         Callback = callback;
         if (dndClass != null)

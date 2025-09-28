@@ -3,6 +3,7 @@ using Dndcs2.constants;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.dtos;
 using Dndcs2.Sql;
+using Dndcs2.stats;
 
 namespace Dndcs2.events;
 
@@ -13,6 +14,62 @@ public class PlayerSpawn : DndEvent<EventPlayerSpawn>
     {
         
     }
+    
+    public override HookResult DefaultPreHookCallback(EventPlayerSpawn @event, GameEventInfo info)
+    {         
+        if (@event.Userid == null)
+            throw new Exception($"{GetType().Name} Userid was null");
+        
+
+        var dndPlayer = CommonMethods.RetrievePlayer(@event.Userid, true);
+        if (@event.Userid.IsBot)
+        {
+            if (dndPlayer != null)
+                CommonMethods.TrackPlayerLogin(dndPlayer, DateTime.UtcNow, GetType().Name);
+            else
+                CommonMethods.CreateNewPlayer(@event.Userid, GetType().Name);
+        }
+
+        if(dndPlayer == null)
+            dndPlayer = CommonMethods.RetrievePlayer(@event.Userid);
+        
+        var playerStats = PlayerStats.GetPlayerStats(dndPlayer);
+        playerStats.Reset();        
+
+        var spawnerClassEnum = (constants.DndClass)dndPlayer.DndClassId;
+        var spawnerSpecieEnum = (constants.DndSpecie)dndPlayer.DndSpecieId;
+        List<EventCallbackFeatureContainer> features = new();
+        foreach(var classSpecieEventFeature in PreEventCallbacks)
+        {
+            var feature = (EventCallbackFeature<EventPlayerSpawn>) classSpecieEventFeature; 
+            if(
+                (feature.DndClass == spawnerClassEnum
+                 || feature.DndSpecie == spawnerSpecieEnum
+                 || (feature.DndClass == null && feature.DndSpecie == null) // used for event for all classes & species
+                 ) && feature.HookMode == HookMode.Pre
+            )            
+                features.Add(feature);            
+        }
+
+        features = features.OrderBy(feature =>((EventCallbackFeature<EventPlayerSpawn>) feature).CallbackFeaturePriority).ToList();
+        bool overrideFlag = false;
+        foreach(var f in features)
+        {
+            var feature = (EventCallbackFeature<EventPlayerSpawn>) f;
+            HookResult result = feature.Callback(@event, info, dndPlayer, null);
+            if (feature.CallbackFeaturePriority == EventCallbackFeaturePriority.Interrupts)
+                return result;
+            if (result != HookResult.Continue)
+                return result;
+            if(feature.OverrideDefaultBehavior)
+                overrideFlag = true;
+        };
+        
+        if(overrideFlag)
+            return HookResult.Continue;      
+        
+        return HookResult.Continue;   
+    }    
 
     public override HookResult DefaultPostHookCallback(EventPlayerSpawn @event, GameEventInfo info)
     {         
@@ -39,10 +96,10 @@ public class PlayerSpawn : DndEvent<EventPlayerSpawn>
 
         var spawnerClassEnum = (constants.DndClass)dndPlayer.DndClassId;
         var spawnerSpecieEnum = (constants.DndSpecie)dndPlayer.DndSpecieId;
-        List<DndClassSpecieEventFeatureContainer> features = new();
+        List<EventCallbackFeatureContainer> features = new();
         foreach(var classSpecieEventFeature in PostEventCallbacks)
         {
-            var feature = (DndClassSpecieEventFeature<EventPlayerSpawn>) classSpecieEventFeature; 
+            var feature = (EventCallbackFeature<EventPlayerSpawn>) classSpecieEventFeature; 
             if(
                 (feature.DndClass == spawnerClassEnum
                  || feature.DndSpecie == spawnerSpecieEnum
@@ -52,13 +109,13 @@ public class PlayerSpawn : DndEvent<EventPlayerSpawn>
                 features.Add(feature);            
         }
 
-        features = features.OrderBy(feature =>((DndClassSpecieEventFeature<EventPlayerSpawn>) feature).Priority).ToList();
+        features = features.OrderBy(feature =>((EventCallbackFeature<EventPlayerSpawn>) feature).CallbackFeaturePriority).ToList();
         bool overrideFlag = false;
         foreach(var f in features)
         {
-            var feature = (DndClassSpecieEventFeature<EventPlayerSpawn>) f;
+            var feature = (EventCallbackFeature<EventPlayerSpawn>) f;
             HookResult result = feature.Callback(@event, info, dndPlayer, null);
-            if (feature.Priority == DndClassSpecieEventPriority.Interrupts)
+            if (feature.CallbackFeaturePriority == EventCallbackFeaturePriority.Interrupts)
                 return result;
             if (result != HookResult.Continue)
                 return result;

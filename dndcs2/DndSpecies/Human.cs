@@ -17,17 +17,17 @@ public class Human : DndBaseSpecie
         base(createdBy, createDate, updatedBy, updatedDate, enabled, (int) constants.DndSpecie.Human, dndSpecieName, 
             dndSpecieLevelAdjustment, dndSpecieDescription, dndSpecieRequirements)
     {        
-        DndClassSpecieEvents.Add(         
-            new HumanPostPlayerDeathEventFeature()
-        );
+        DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
+            new HumanPostPlayerDeathEventCallbackFeature()
+        });
         
     }
     
 
-    public class HumanPostPlayerDeathEventFeature : DndClassSpecieEventFeature<EventPlayerDeath>
+    public class HumanPostPlayerDeathEventCallbackFeature : EventCallbackFeature<EventPlayerDeath>
     {
-        public HumanPostPlayerDeathEventFeature() : 
-            base(false, DndClassSpecieEventPriority.Medium, 
+        public HumanPostPlayerDeathEventCallbackFeature() : 
+            base(false, EventCallbackFeaturePriority.Medium, 
                 HookMode.Post, PlayerDeathPost, null, constants.DndSpecie.Human)
         {
         }
@@ -43,7 +43,7 @@ public class Human : DndBaseSpecie
             if (attackerSpecieEnum == constants.DndSpecie.Human && @event.Attacker.Team != @event.Userid.Team)
             {
                 DndEvent<EventPlayerDeath>.GrantPlayerExperience(dndPlayerAttacker, Dndcs2.HumanXP.Value, 
-                    Dndcs2.HumanXP.Description, nameof(HumanPostPlayerDeathEventFeature));
+                    Dndcs2.HumanXP.Description, nameof(HumanPostPlayerDeathEventCallbackFeature));
             }
             return HookResult.Continue;
         }

@@ -1,6 +1,6 @@
 ﻿namespace Dndcs2.constants;
 
-public enum DndClassSpecieEventPriority
+public enum EventCallbackFeaturePriority
 {
     Interrupts = 0,
     High = 1,

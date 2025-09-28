@@ -34,10 +34,10 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
         var attackerClassEnum = (constants.DndClass) dndPlayerAttacker.DndClassId;
         var attackerSpecieEnum = (constants.DndSpecie) dndPlayerAttacker.DndSpecieId;
 
-        List<DndClassSpecieEventFeatureContainer> features = new();
+        List<EventCallbackFeatureContainer> features = new();
         foreach(var classSpecieEventFeature in PostEventCallbacks)
         {
-            var feature = (DndClassSpecieEventFeature<EventPlayerDeath>) classSpecieEventFeature; 
+            var feature = (EventCallbackFeature<EventPlayerDeath>) classSpecieEventFeature; 
             if(
                 (feature.DndClass == victimClassEnum
                 || feature.DndSpecie == victimSpecieEnum
@@ -49,13 +49,13 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
             
         }
 
-        features = features.OrderBy(feature =>((DndClassSpecieEventFeature<EventPlayerDeath>) feature).Priority).ToList();
+        features = features.OrderBy(feature =>((EventCallbackFeature<EventPlayerDeath>) feature).CallbackFeaturePriority).ToList();
         bool overrideFlag = false;
         foreach(var f in features)
         {
-            var feature = (DndClassSpecieEventFeature<EventPlayerDeath>) f;
+            var feature = (EventCallbackFeature<EventPlayerDeath>) f;
             HookResult result = feature.Callback(@event, info, dndPlayerVictim, dndPlayerAttacker);
-            if (feature.Priority == DndClassSpecieEventPriority.Interrupts)
+            if (feature.CallbackFeaturePriority == EventCallbackFeaturePriority.Interrupts)
                 return result;
             if (result != HookResult.Continue)
                 return result;
@@ -89,7 +89,7 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
                 else 
                     reason += Dndcs2.KillModifierHighXP.Description;
             }
-            PrintMessageToConsole(@event.Weapon);
+            
             GrantPlayerExperience(dndPlayerAttacker, amount, reason, GetType().Name);
             if(@event.Headshot)
                 GrantPlayerExperience(dndPlayerAttacker, Dndcs2.HeadShotXP.Value, Dndcs2.HeadShotXP.Description, GetType().Name);

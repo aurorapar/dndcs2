@@ -27,10 +27,10 @@ public class RoundStart : DndEvent<EventRoundStart>
             
             XpRoundTracker[dndPlayer.DndPlayerId] = new List<DndExperienceLog>();
             
-            List<DndClassSpecieEventFeatureContainer> features = new();
+            List<EventCallbackFeatureContainer> features = new();
             foreach(var classSpecieEventFeature in PostEventCallbacks)
             {
-                var feature = (DndClassSpecieEventFeature<EventRoundStart>) classSpecieEventFeature; 
+                var feature = (EventCallbackFeature<EventRoundStart>) classSpecieEventFeature; 
                 if(
                     (feature.DndClass == dndClassEnum
                      || feature.DndSpecie == dndSpecieEnum
@@ -40,13 +40,13 @@ public class RoundStart : DndEvent<EventRoundStart>
                     features.Add(feature);            
             }
             
-            features = features.OrderBy(feature =>((DndClassSpecieEventFeature<EventRoundStart>) feature).Priority).ToList();
+            features = features.OrderBy(feature =>((EventCallbackFeature<EventRoundStart>) feature).CallbackFeaturePriority).ToList();
             bool overrideFlag = false;
             foreach(var f in features)
             {
-                var feature = (DndClassSpecieEventFeature<EventRoundStart>) f;
+                var feature = (EventCallbackFeature<EventRoundStart>) f;
                 HookResult result = feature.Callback(@event, info, dndPlayer, null);
-                if (feature.Priority == DndClassSpecieEventPriority.Interrupts)
+                if (feature.CallbackFeaturePriority == EventCallbackFeaturePriority.Interrupts)
                     break;
                 if (result != HookResult.Continue)
                     break;
