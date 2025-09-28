@@ -44,7 +44,7 @@ public class RoundStart : DndEvent<EventRoundStart>
             foreach(var f in features)
             {
                 var feature = (DndClassSpecieEventFeature<EventRoundStart>) f;
-                HookResult result = feature.Callback(@event, info);
+                HookResult result = feature.Callback(@event, info, dndPlayer, null);
                 if (feature.Priority == DndClassSpecieEventPriority.Interrupts)
                     break;
                 if (result != HookResult.Continue)

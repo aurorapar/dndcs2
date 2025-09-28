@@ -1,7 +1,12 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
+using static Dndcs2.messages.DndMessages;
 using Dndcs2.constants;
-    
+using Dndcs2.dtos;
+using DndClass = Dndcs2.constants.DndClass;
+using DndSpecie = Dndcs2.constants.DndSpecie;
+
 namespace Dndcs2.events;
 
 public abstract class DndClassSpecieEventFeature<T> : DndClassSpecieEventFeatureContainer
@@ -11,14 +16,15 @@ public abstract class DndClassSpecieEventFeature<T> : DndClassSpecieEventFeature
     public bool OverrideDefaultBehavior { get; private set; }
     public DndClassSpecieEventPriority Priority { get; private set; }
     public HookMode @HookMode { get; private set; }
-    public Func<T, GameEventInfo, HookResult> Callback { get; private set; }
-    public DndClass DndClass { get; private set; }
-    public DndSpecie DndSpecie { get; private set; }
+    public Func<T, GameEventInfo, DndPlayer, DndPlayer?, HookResult> Callback { get; private set; }
+    public DndClass? DndClass { get; private set; }
+    public DndSpecie? DndSpecie { get; private set; }
 
-    public DndClassSpecieEventFeature(bool overrideDefaultBehavior, DndClassSpecieEventPriority priority, HookMode hookMode, 
-        Func<T, GameEventInfo, HookResult> callback, DndClass? dndClass = null, DndSpecie? dndSpecie = null)
+    public DndClassSpecieEventFeature(bool overrideDefaultBehavior, DndClassSpecieEventPriority priority,
+        HookMode hookMode,
+        Func<T, GameEventInfo, DndPlayer, DndPlayer?, HookResult> callback, DndClass? dndClass = null, DndSpecie? dndSpecie = null)
     {
-        if (dndClass == null && dndSpecie == null)
+        if (dndClass == null && dndSpecie == null && GetType().Name != "BaseStats")
             throw new Exception($"Do not have an overriding class or specie behavior for {typeof(T).Name}");
 
         OverrideDefaultBehavior = overrideDefaultBehavior;
@@ -41,10 +47,17 @@ public abstract class DndClassSpecieEventFeature<T> : DndClassSpecieEventFeature
 
     private void AddClassSpecieFeatureEvent()
     {
-        if(HookMode == HookMode.Pre)
+        if (HookMode == HookMode.Pre)
+        {
+            PrintMessageToConsole("Registering " + GetType().Name);
             BaseEvent.PreEventCallbacks.Add(this);
-        if(HookMode == HookMode.Post)
+        }
+
+        if (HookMode == HookMode.Post)
+        {
+            PrintMessageToConsole("Registering " + GetType().Name);
             BaseEvent.PostEventCallbacks.Add(this);
+        }
     }
 }
 

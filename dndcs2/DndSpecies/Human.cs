@@ -17,25 +17,22 @@ public class Human : DndBaseSpecie
         base(createdBy, createDate, updatedBy, updatedDate, enabled, (int) constants.DndSpecie.Human, dndSpecieName, 
             dndSpecieLevelAdjustment, dndSpecieDescription, dndSpecieRequirements)
     {        
-        DndClassSpecieEvents = new List<DndClassSpecieEventFeatureContainer>()
-        {
-            new HumanPostPlayerDeathEventFeature(false, DndClassSpecieEventPriority.Medium, 
-                HookMode.Post, HumanPostPlayerDeathEventFeature.PlayerDeathPost, null, constants.DndSpecie.Human),
-        };
+        DndClassSpecieEvents.Add(         
+            new HumanPostPlayerDeathEventFeature()
+        );
         
     }
     
 
     public class HumanPostPlayerDeathEventFeature : DndClassSpecieEventFeature<EventPlayerDeath>
     {
-        public HumanPostPlayerDeathEventFeature(bool overrideDefaultBehavior, DndClassSpecieEventPriority priority, 
-            HookMode hookMode, Func<EventPlayerDeath, GameEventInfo, HookResult> callback, constants.DndClass? dndClass = null, 
-            constants.DndSpecie? dndSpecie = null) : 
-            base(overrideDefaultBehavior, priority, hookMode, callback, dndClass, dndSpecie)
+        public HumanPostPlayerDeathEventFeature() : 
+            base(false, DndClassSpecieEventPriority.Medium, 
+                HookMode.Post, PlayerDeathPost, null, constants.DndSpecie.Human)
         {
         }
 
-        public static HookResult PlayerDeathPost(EventPlayerDeath @event, GameEventInfo info)
+        public static HookResult PlayerDeathPost(EventPlayerDeath @event, GameEventInfo info, DndPlayer dndPlayer, DndPlayer? notUsed)
         {
             var attacker = @event.Attacker;
             if (attacker is null)

@@ -54,7 +54,7 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
         foreach(var f in features)
         {
             var feature = (DndClassSpecieEventFeature<EventPlayerDeath>) f;
-            HookResult result = feature.Callback(@event, info);
+            HookResult result = feature.Callback(@event, info, dndPlayerVictim, dndPlayerAttacker);
             if (feature.Priority == DndClassSpecieEventPriority.Interrupts)
                 return result;
             if (result != HookResult.Continue)

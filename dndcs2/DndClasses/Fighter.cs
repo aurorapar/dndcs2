@@ -1,12 +1,10 @@
 ﻿using System.Collections.ObjectModel;
-using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using static Dndcs2.messages.DndMessages;
 using Dndcs2.constants;
-using Dndcs2.DndSpecies;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using Dndcs2.Sql;
-using DndClass = Dndcs2.dtos.DndClass;
 
 namespace Dndcs2.DndClasses;
 
@@ -18,35 +16,36 @@ public class Fighter : DndBaseClass
             Enum.GetName(typeof(constants.DndClass), constants.DndClass.Fighter), 
             dndClassDescription, dndClassRequirements)
     {
-        DndClassSpecieEvents = new List<DndClassSpecieEventFeatureContainer>()
-        {
-            new FighterExtraPistolDamage(false, DndClassSpecieEventPriority.Medium, 
-                HookMode.Pre, FighterExtraPistolDamage.PlayerHurtPre, constants.DndClass.Fighter, null),
-        };
+        DndClassSpecieEvents.Add(        
+            new FighterExtraPistolDamage()            
+        );
     }
     
-    public class FighterExtraPistolDamage : DndClassSpecieEventFeature<EventPlayerDeath>
+    public class FighterExtraPistolDamage : DndClassSpecieEventFeature<EventPlayerHurt>
     {
-        public FighterExtraPistolDamage(bool overrideDefaultBehavior, DndClassSpecieEventPriority priority, 
-            HookMode hookMode, Func<EventPlayerDeath, GameEventInfo, HookResult> callback, constants.DndClass? dndClass = null, 
-            constants.DndSpecie? dndSpecie = null) : 
-            base(overrideDefaultBehavior, priority, hookMode, callback, dndClass, dndSpecie)
+        public FighterExtraPistolDamage() : 
+            base(false, DndClassSpecieEventPriority.Medium, HookMode.Pre, PlayerHurtPre, 
+                constants.DndClass.Fighter, null)
         {
+            PrintMessageToConsole("Creating " + GetType().Name);
         }
 
-        public static HookResult PlayerHurtPre(EventPlayerDeath @event, GameEventInfo info)
+        public static HookResult PlayerHurtPre(EventPlayerHurt @event, GameEventInfo info, DndPlayer dndPlayerVictim,
+            DndPlayer dndPlayerAttacker)
         {
             var attacker = @event.Attacker;
-            if (attacker is null)
-                return HookResult.Continue;
-            
-            var dndPlayerAttacker = CommonMethods.RetrievePlayer(attacker);
+            var victim = @event.Userid;
             var attackerClassEnum = (constants.DndClass) dndPlayerAttacker.DndClassId;
-            if (attackerClassEnum == constants.DndClass.Fighter && @event.Attacker.Team != @event.Userid.Team)
+            if (attackerClassEnum == constants.DndClass.Fighter && attacker.Team != victim.Team)
             {
-                if(new List<string>(){"test"}.Contains(@event.Weapon) )
+                var weapon = Dndcs2.GetPlayerWeapon(attacker);
+                if(weapon == null)
+                    return HookResult.Continue;
+
+                if (Dndcs2.Pistols.Contains(weapon))
                 {
-                    
+                    Dndcs2.UpdatePrehookDamage(@event, (int) (@event.DmgHealth * 1.25));
+                    return HookResult.Changed;
                 }
             }
             return HookResult.Continue;

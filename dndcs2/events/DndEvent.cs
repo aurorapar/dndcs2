@@ -13,6 +13,7 @@ public partial class Dndcs2
         DndEvents = new List<DndEventContainer>()
         {
             new PlayerDeath(),
+            new PlayerHurt(),
             new PlayerConnectFull(),
             new PlayerDisconnect(),
             new PlayerSpawn(),
@@ -22,7 +23,7 @@ public partial class Dndcs2
             new BombExplode(),
             new BombPlant(),
             new HostageKilled(),
-            new HostageRescued()
+            new HostageRescued(),
         };
     }
 }
@@ -80,6 +81,8 @@ public abstract class DndEvent<T> : DndEventContainer
         var roundStartEvent = (RoundStart) RetrieveEvent<EventRoundStart>();
         var xpLogItem = new DndExperienceLog(source, DateTime.UtcNow, source, DateTime.UtcNow, true,
             dndPlayer.DndPlayerId, amount, reason);
+        if (!roundStartEvent.XpRoundTracker.ContainsKey(dndPlayer.DndPlayerId))
+            roundStartEvent.XpRoundTracker[dndPlayer.DndPlayerId] = new();
         roundStartEvent.XpRoundTracker[dndPlayer.DndPlayerId].Add(xpLogItem);
     }
 }
