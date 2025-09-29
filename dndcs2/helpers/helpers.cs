@@ -46,13 +46,6 @@ public partial class Dndcs2
         .AddRange(Snipers)
         .AddRange(Grenades)
     ;
-
-    // public void RegisterListener<T>(T handler) where T : Delegate
-    public static void UnregisterListener<T>(T handler) where T : Delegate
-    {
-        var listenerName = typeof(T).GetCustomAttribute<ListenerNameAttribute>()?.Name;
-        
-    }
          
     public static void ShowDndXp(CCSPlayerController player, CCSPlayerController target)
     {
@@ -69,7 +62,12 @@ public partial class Dndcs2
         string source = "https://dndcs2.spawningpool.net/info.html";
         HttpClient client = new HttpClient();
         string page = client.GetStringAsync(source).Result;
-        player.PrintToCenterHtml(page, 10);
+        
+        MenuManager.CloseActiveMenu(player);
+        Server.NextFrame(() =>
+        {
+            player.PrintToCenterHtml(page, 10); 
+        });        
     }
 
     public static void ProcessPlayerXp(CCSPlayerController player)

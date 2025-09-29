@@ -24,7 +24,7 @@ public class DndMainMenu : PlayerMenu
 
     public void ShowInfo(CCSPlayerController player, ItemOption selectedOption)
     {
-        Dndcs2.ShowDndXp(player, player);
+        Dndcs2.ShowDndInfo(player);
     }
     
     public void ShowClasses(CCSPlayerController player, ItemOption selectedOption)
@@ -110,7 +110,7 @@ public class DndMainMenu : PlayerMenu
     
     public void PlayerStats(CCSPlayerController player, ItemOption selectedOption)
     {
-        MessagePlayer(player, "Use the command 'dndxp'");
+        Dndcs2.ShowDndXp(player, player);
     }
     
     public void PlayerInfo(CCSPlayerController player, ItemOption selectedOption)
