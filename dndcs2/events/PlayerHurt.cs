@@ -39,8 +39,7 @@ public class PlayerHurt : DndEvent<EventPlayerHurt>
             if(
                 (feature.DndClass == victimClassEnum
                  || feature.DndSpecie == victimSpecieEnum
-                 || feature.DndClass == attackerClassEnum
-                 || feature.DndSpecie == attackerSpecieEnum)
+                 || (feature.DndClass == attackerClassEnum || feature.DndSpecie == attackerSpecieEnum) && ! attacker.ControllingBot)
                 && feature.HookMode == HookMode.Pre
             )
                 features.Add(feature);

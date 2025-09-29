@@ -3,6 +3,7 @@ using System.Reflection;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
+using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Menu;
 using CounterStrikeSharp.API.Modules.Utils;
 using static Dndcs2.messages.DndMessages;
@@ -126,5 +127,16 @@ public partial class Dndcs2
         PlayerDeath playerDeathEvent = (PlayerDeath) DndEvent<EventPlayerDeath>.RetrieveEvent<EventPlayerDeath>();
         if (!playerDeathEvent.KillStreakTracker.ContainsKey(player))
             playerDeathEvent.KillStreakTracker[player] = 0;
+    }
+
+    public static string GetCurrentRoundTime()
+    {        
+        var elapsedTime = (DateTime.Now - Dndcs2.RoundTime);
+        var roundTime = float.Parse(ConVar.Find("mp_roundtime").StringValue);
+        elapsedTime -= TimeSpan.FromMinutes((int)roundTime);
+        elapsedTime -= TimeSpan.FromSeconds((roundTime - (int)roundTime) * 60);        
+        string message = $"{elapsedTime.Minutes}m {elapsedTime.Seconds}s";
+        BroadcastMessage(message);
+        return message;
     }
 }

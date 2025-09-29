@@ -1,4 +1,5 @@
 ﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Modules.Cvars;
 using Dndcs2.timers;
 using static Dndcs2.messages.DndMessages;
 
@@ -75,7 +76,21 @@ public class PlayerBaseStats
     {
         Speed += amount;
         var player = Utilities.GetPlayerFromUserid(Userid);
-        player.PlayerPawn.Value.VelocityModifier = Speed;
+        
+        Server.NextFrame(() =>
+        {
+            player.PlayerPawn.Value.VelocityModifier = Speed;
+            MessagePlayer(player, $"Changed speed to {Speed}");
+        });
+        if (duration.HasValue)
+        {
+            new GenericTimer(duration.Value, duration.Value, 1, () =>
+            {
+                ChangeSpeed(-1 * amount);
+            });
+        }
+        
+        
     }
 
     public void PermitWeapon(string weapon, float? duration = null)

@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.constants;
@@ -18,31 +19,29 @@ public class Rogue : DndBaseClass
             dndClassDescription, dndClassRequirements)
     {
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
-            new RogueSpeed()
+           
         });
-    }
-    
-    public class RogueSpeed : EventCallbackFeature<EventPlayerSpawn>
-    {
-        public RogueSpeed() : 
-            base(false, EventCallbackFeaturePriority.Medium, HookMode.Post, PlayerPostSpawn, 
-                constants.DndClass.Rogue, null)
+        
+        Dndcs2.Instance.RegisterEventHandler<EventPlayerSpawn>((@event, info) =>
         {
+            if (@event.Userid == null || @event.Userid.ControllingBot)
+                return HookResult.Continue;
             
-        }
+            var userid = (int) @event.Userid.UserId;
+            Server.NextFrame(() =>
+            {                
+                var player = Utilities.GetPlayerFromUserid(userid);
+                if (player == null)
+                    return;
+                var dndPlayer = CommonMethods.RetrievePlayer(player);
+                if ((constants.DndClass)dndPlayer.DndClassId != constants.DndClass.Rogue)
+                    return;                
+                var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
+                MessagePlayer(player, $"You gained 20% bonus speed for being a {constants.DndClass.Rogue}");
+                playerBaseStats.ChangeSpeed(.2f);
 
-        public static HookResult PlayerPostSpawn(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer,
-            DndPlayer? dndPlayerAttacker)
-        {
-            if (@event.Userid == null || @event.Userid.UserId == null)
-                return HookResult.Continue;
-            if ((constants.DndClass)dndPlayer.DndClassId != constants.DndClass.Rogue)
-                return HookResult.Continue;
-            
-            var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
-            MessagePlayer(@event.Userid, $"You gained 20% bonus speed for being a {constants.DndClass.Rogue}");
-            playerBaseStats.ChangeSpeed(.2f);
+            });
             return HookResult.Continue;
-        }
-    }
+        }, HookMode.Post);
+    }    
 }

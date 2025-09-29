@@ -17,6 +17,7 @@ public partial class Dndcs2 : BasePlugin
     public override string ModuleAuthor => "Aurora";
     public override string ModuleDescription  => "An overhaul that brings D&D Mechanics to CS2";
     public static Dndcs2 Instance { get; private set; }
+    public static DateTime RoundTime { get; set; }
     public string DatabaseLocation { get; private set; }
     public readonly DndLog Log;
     public Dictionary<constants.DndClass, DndClass> DndClassLookup { get; private set; } = new();

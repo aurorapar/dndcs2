@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.constants;
@@ -18,9 +19,33 @@ public class Fighter : DndBaseClass
             dndClassDescription, dndClassRequirements)
     {
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
-            new FighterExtraPistolDamage(),
-            new FighterExtraHealth()
+            new FighterExtraPistolDamage()
         });
+        
+        Dndcs2.Instance.RegisterEventHandler<EventPlayerSpawn>((@event, info) =>
+        {
+            if (@event.Userid == null || @event.Userid.ControllingBot)
+                return HookResult.Continue;
+            
+            var userid = (int) @event.Userid.UserId;
+            Server.NextFrame(() =>
+            {                
+                var player = Utilities.GetPlayerFromUserid(userid);
+                if (player == null)
+                    return;
+                var dndPlayer = CommonMethods.RetrievePlayer(player);
+                if ((constants.DndClass)dndPlayer.DndClassId != constants.DndClass.Fighter)
+                    return;
+
+                var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
+                var fighterLevel = CommonMethods.RetrievePlayerClassLevel(player);
+                MessagePlayer(player,
+                    $"You gained {5 * fighterLevel} bonus health for being a Level {fighterLevel} {constants.DndClass.Fighter}");
+                playerBaseStats.ChangeMaxHealth(5 * fighterLevel);
+
+            });
+            return HookResult.Continue;
+        }, HookMode.Post);
     }
     
     public class FighterExtraPistolDamage : EventCallbackFeature<EventPlayerHurt>
@@ -74,10 +99,16 @@ public class Fighter : DndBaseClass
             if ((constants.DndClass)dndPlayer.DndClassId != constants.DndClass.Fighter)
                 return HookResult.Continue;
             
-            var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
-            var fighterLevel = CommonMethods.RetrievePlayerClassLevel(@event.Userid);
-            MessagePlayer(@event.Userid, $"You gained {5 * fighterLevel} bonus health for being a Level {fighterLevel} {constants.DndClass.Fighter}");
-            playerBaseStats.ChangeMaxHealth(5 * fighterLevel);
+            var userid = (int) @event.Userid.UserId;
+            Server.NextFrame(() =>
+            {
+                var player = Utilities.GetPlayerFromUserid(userid);
+                dndPlayer = CommonMethods.RetrievePlayer(player);
+                var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
+                var fighterLevel = CommonMethods.RetrievePlayerClassLevel(player);
+                MessagePlayer(player, $"You gained {5 * fighterLevel} bonus health for being a Level {fighterLevel} {constants.DndClass.Fighter}");
+                playerBaseStats.ChangeMaxHealth(5 * fighterLevel);
+            });            
             return HookResult.Continue;
         }
     }

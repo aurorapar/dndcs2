@@ -18,7 +18,8 @@ public class RoundStart : DndEvent<EventRoundStart>
     }
 
     public override HookResult DefaultPostHookCallback(EventRoundStart @event, GameEventInfo info)
-    {        
+    {
+        Dndcs2.RoundTime = DateTime.Now;
         foreach (var player in Utilities.GetPlayers())
         {            
             var dndPlayer = CommonMethods.RetrievePlayer(player);

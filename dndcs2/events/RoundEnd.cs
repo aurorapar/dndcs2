@@ -17,7 +17,6 @@ public class RoundEnd : DndEvent<EventRoundEnd>
 
     public override HookResult DefaultPostHookCallback(EventRoundEnd @event, GameEventInfo info)
     {
-        BroadcastMessage("Round ended!");
         foreach (var player in Utilities.GetPlayers())
         {
             var dndPlayer = CommonMethods.RetrievePlayer(player);
