@@ -14,12 +14,11 @@ public class RoundStartPreEntity : DndEvent<EventRoundStartPreEntity>
     
     public RoundStartPreEntity() : base()
     {
-        PrintMessageToConsole("Registering RoundStartPreEntity event listener");
+        
     }
 
     public override HookResult DefaultPostHookCallback(EventRoundStartPreEntity @event, GameEventInfo info)
-    {        
-        PrintMessageToConsole("Starting RoundStartPreEntity event listener");
+    {           
         if (PlayerStats == null)
             PlayerStats = new();        
         
@@ -63,6 +62,6 @@ public class RoundStartPreEntity : DndEvent<EventRoundStartPreEntity>
 
     public void DoDefaultPostCallback(EventRoundStartPreEntity @event, GameEventInfo info, DndPlayer dndPlayer)
     {
-        PrintMessageToConsole("Doing RoundStartPreEntity default behavior");
+        
     }
 }

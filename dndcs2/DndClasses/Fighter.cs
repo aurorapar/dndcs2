@@ -29,7 +29,7 @@ public class Fighter : DndBaseClass
             base(false, EventCallbackFeaturePriority.Medium, HookMode.Pre, PlayerHurtPre, 
                 constants.DndClass.Fighter, null)
         {
-            PrintMessageToConsole("Creating " + GetType().Name);
+            
         }
 
         public static HookResult PlayerHurtPre(EventPlayerHurt @event, GameEventInfo info, DndPlayer dndPlayerVictim,
@@ -63,7 +63,7 @@ public class Fighter : DndBaseClass
             base(false, EventCallbackFeaturePriority.Medium, HookMode.Post, PlayerPostSpawn, 
                 constants.DndClass.Fighter, null)
         {
-            PrintMessageToConsole("Creating " + GetType().Name);
+            
         }
 
         public static HookResult PlayerPostSpawn(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer,

@@ -23,6 +23,6 @@ public abstract class DndBaseClass : DndClass
         base(createdBy, createDate, updatedBy, updatedDate, enabled, dndClassId, dndClassName, dndClassDescription, 
             dndClassRequirements)
     {
-    
+        Dndcs2.Instance.Log.LogInformation($"Created class {GetType().Name}");
     }    
 }

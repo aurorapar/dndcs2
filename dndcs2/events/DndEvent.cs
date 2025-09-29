@@ -43,13 +43,41 @@ public abstract class DndEvent<T> : DndEventContainer
         {
             return DefaultPreHookCallback(@event, info);
         }, HookMode.Pre);
-        PrintMessageToConsole($"Registered pre hook for {GetType().Name}");
         
         Dndcs2.Instance.RegisterEventHandler<T>((@event, info) =>
         {
             return DefaultPostHookCallback(@event, info);
         }, HookMode.Post);
-        PrintMessageToConsole($"Registered post hook for {GetType().Name}");
+        
+        Dndcs2.Instance.Log.LogInformation($"Created Event {GetType().Name}");
+    }
+
+    public HookResult InnerPrehookCallback(T @event, GameEventInfo info)
+    {
+        Dndcs2.Instance.Log.Debug($"Event {GetType().Name} fired prehook");
+        try
+        {
+            return DefaultPreHookCallback(@event, info);
+        }
+        catch (Exception e)
+        {
+            Dndcs2.Instance.Log.LogError($"Error occurred trying to fire prehook for {GetType().Name}\n\t{e}");    
+        }
+        return HookResult.Continue;
+    }
+    
+    public HookResult InnerPosthookCallback(T @event, GameEventInfo info)
+    {
+        Dndcs2.Instance.Log.Debug($"Event {GetType().Name} fired posthook");
+        try
+        {
+            return DefaultPostHookCallback(@event, info);
+        }
+        catch (Exception e)
+        {
+            Dndcs2.Instance.Log.LogError($"Error occurred trying to fire posthook for {GetType().Name}\n\t{e}");    
+        }
+        return HookResult.Continue;
     }
     
     public virtual HookResult DefaultPreHookCallback(T @event, GameEventInfo info)

@@ -25,7 +25,7 @@ public class DndcsContext : DbContext
 
     public DndcsContext()
     {
-        DbPath = Dndcs2.DatabaseLocation;
+        DbPath = Dndcs2.Instance.DatabaseLocation;
     }
 
     // The following configures EF to create a Sqlite database file in the
@@ -39,7 +39,6 @@ public class DndcsContext : DbContext
     public void EnsureCreated()
     {        
         Database.EnsureCreated();
-        PrintMessageToConsole("Database Created or Loaded!");
-        Dndcs2.DndLogger.LogInformation("Database Created or Loaded");
+        Dndcs2.Instance.Log.LogInformation("Database Created or Loaded");
     }
 }

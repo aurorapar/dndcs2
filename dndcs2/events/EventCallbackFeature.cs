@@ -54,17 +54,13 @@ public abstract class EventCallbackFeature<T> : EventCallbackFeatureContainer
 
     private void AddClassSpecieFeatureEvent()
     {
-        if (HookMode == HookMode.Pre)
-        {
-            PrintMessageToConsole("Registering " + GetType().Name);
+        if (HookMode == HookMode.Pre)        
             BaseEvent.PreEventCallbacks.Add(this);
-        }
 
         if (HookMode == HookMode.Post)
-        {
-            PrintMessageToConsole("Registering " + GetType().Name);
             BaseEvent.PostEventCallbacks.Add(this);
-        }
+        
+        Dndcs2.Instance.Log.Debug($"Added {GetType().Name}");
     }
 }
 

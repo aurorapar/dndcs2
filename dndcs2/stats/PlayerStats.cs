@@ -1,10 +1,8 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using Dndcs2.constants;
 using Dndcs2.dtos;
-using Dndcs2.events;
 using Dndcs2.Sql;
-
+using static Dndcs2.messages.DndMessages;
 namespace Dndcs2.stats;
 
 public static class PlayerStats
@@ -15,9 +13,11 @@ public static class PlayerStats
     {
         var player = Utilities.GetPlayers()
             .FirstOrDefault(p => CommonMethods.GetPlayerAccountId(p) == dndPlayer.DndPlayerAccountId);
-        
+
         if (player == null)
             return null;
+
+
         if (!_playerStatsLookup.ContainsKey((int)player.UserId))
             _playerStatsLookup[(int)player.UserId] = new PlayerBaseStats((int) player.UserId);
         return _playerStatsLookup[(int)player.UserId];

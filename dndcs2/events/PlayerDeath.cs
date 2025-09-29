@@ -126,7 +126,7 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
         {
             if (Utilities.GetPlayers().Contains(attacker) && victim != attacker) // disconnecting counts as a suicide
             {
-                PrintMessageToConsole($"{attacker.PlayerName} team killed {victim.PlayerName}");
+                Dndcs2.Instance.Log.LogInformation($"{attacker.PlayerName} team killed {victim.PlayerName}");
                 MessagePlayer(attacker,
                     string.Format("You lost {0} experience for {1}", Dndcs2.TeamKillXP.Value,
                         Dndcs2.TeamKillXP.Description));

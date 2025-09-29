@@ -16,6 +16,6 @@ public abstract class DndBaseSpecie : DndSpecie
             dndSpecieLevelAdjustment,
             dndSpecieDescription, dndSpecieRequirements)
     {
-        
+        Dndcs2.Instance.Log.LogInformation($"Created Specie {GetType().Name}");
     }
 }

@@ -1,16 +1,16 @@
 ﻿using System.Collections.ObjectModel;
 using CounterStrikeSharp.API;
-using Microsoft.Extensions.Logging;
 using CounterStrikeSharp.API.Core;
 using Dndcs2.DndClasses;
 using Dndcs2.DndSpecies;
 using static Dndcs2.constants.DndClassDescription;
 using static Dndcs2.constants.DndSpecieDescription;
-using static Dndcs2.messages.DndMessages;
 using Dndcs2.dtos;
 using Dndcs2.events;
+using Dndcs2.log;
 using Dndcs2.Sql;
 using Dndcs2.stats;
+using Microsoft.Extensions.Configuration;
 
 namespace Dndcs2;
 
@@ -21,30 +21,32 @@ public partial class Dndcs2 : BasePlugin
     public override string ModuleAuthor => "Aurora";
     public override string ModuleDescription  => "An overhaul that brings D&D Mechanics to CS2";
     public static Dndcs2 Instance { get; private set; }
-    public static string DatabaseLocation { get; private set; }
-    public static ILogger DndLogger { get; }
+    public string DatabaseLocation { get; private set; }
+    public readonly DndLog Log;
     public Dictionary<constants.DndClass, DndClass> DndClassLookup { get; private set; } = new();
     public Dictionary<constants.DndSpecie, DndSpecie> DndSpecieLookup { get; private set; } = new();
     public List<PlayerBaseStats> PlayerBaseStats { get; private set; } = new();
     
     private CCSGameRules? _gameRules;
     private bool _gameRulesInitialized;
-
-    static Dndcs2()
+    
+    public Dndcs2(DndLog dndLog)
     {
-        using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
-        DndLogger = factory.CreateLogger(nameof(Dndcs2));
-
-        var databaseName = "dndcs2.db";
-        var working_folder = Path.Join(Environment.CurrentDirectory, "..", "..", "csgo", "dndcs2_database");
-        if(!Directory.Exists(working_folder))
-            Directory.CreateDirectory(working_folder);
-        DatabaseLocation = Path.Join(working_folder, databaseName);
+        Log = dndLog;
     }
     
     public override void Load(bool hotreload)
     {
         Instance = this;
+        
+        // var configuration = new ConfigurationBuilder()
+        //     .AddJsonFile(Path.Join(ModuleDirectory, "appsettings.json"), optional: false, reloadOnChange: true).Build();
+        
+        var databaseName = "dndcs2.db";
+        var working_folder = Path.Join(Environment.CurrentDirectory, "..", "..", "csgo", "dndcs2_database");
+        if(!Directory.Exists(working_folder))
+            Directory.CreateDirectory(working_folder);
+        DatabaseLocation = Path.Join(working_folder, databaseName);
         
         using(var connection = new DndcsContext())
             connection.EnsureCreated();
@@ -54,7 +56,7 @@ public partial class Dndcs2 : BasePlugin
         RegisterEventCallbacks();
         RegisterClassesSpecies();
         
-        DndLogger.LogInformation("Loaded plugin");
+        Log.LogInformation("Loaded plugin");
     }
 
     public void RegisterListeners(bool hotReload)
@@ -101,7 +103,8 @@ public partial class Dndcs2 : BasePlugin
     {
         var dndClasses = new List<Tuple<constants.DndClass, Type>>()
         {
-            new Tuple<constants.DndClass, Type>(constants.DndClass.Fighter, typeof(DndClasses.Fighter))
+            new Tuple<constants.DndClass, Type>(constants.DndClass.Fighter, typeof(DndClasses.Fighter)),
+            new Tuple<constants.DndClass, Type>(constants.DndClass.Rogue, typeof(DndClasses.Rogue))
         };
         var dndSpecies = new List<Tuple<constants.DndSpecie, Type>>()
         {
@@ -252,6 +255,6 @@ public partial class Dndcs2 : BasePlugin
         
         using(var context = CommonMethods.CreateContext())
             CommonMethods.SaveChanges(context);
-        DndLogger.LogInformation("Unloaded plugin");
+        Log.LogInformation("Unloaded plugin");
     }
 }

@@ -135,7 +135,7 @@ public static class CommonMethods
             SaveChanges(connection);
         }
 
-        Dndcs2.DndLogger.LogInformation($"Player {dndPlayer.DndPlayerAccountId} created");
+        // Dndcs2.DndLogger.LogInformation($"Player {dndPlayer.DndPlayerAccountId} created");
         return dndPlayer;
     }
 
@@ -171,7 +171,7 @@ public static class CommonMethods
             SaveChanges(connection);
         }
 
-        Dndcs2.DndLogger.LogInformation($"Class {dndClass.DndClassName} created");
+        // Dndcs2.DndLogger.LogInformation($"Class {dndClass.DndClassName} created");
     }
     
     public static dtos.DndSpecie? RetrieveDndSpecie(int dndSpecieId)
@@ -192,7 +192,7 @@ public static class CommonMethods
             SaveChanges(connection);
         }
 
-        Dndcs2.DndLogger.LogInformation($"Specie {dndSpecie.DndSpecieName} created");
+        // Dndcs2.DndLogger.LogInformation($"Specie {dndSpecie.DndSpecieName} created");
     }
     
     public static DndPlayer TrackPlayerLogout(DndPlayer dndPlayer, string creator)

@@ -33,7 +33,7 @@ public class PlayerSpawn : DndEvent<EventPlayerSpawn>
         if(dndPlayer == null)
             dndPlayer = CommonMethods.RetrievePlayer(@event.Userid);
         
-        var playerStats = PlayerStats.GetPlayerStats(dndPlayer);
+        var playerStats = PlayerStats.GetPlayerStats((int) @event.Userid.UserId);
         playerStats.Reset();        
 
         var spawnerClassEnum = (constants.DndClass)dndPlayer.DndClassId;
@@ -73,8 +73,8 @@ public class PlayerSpawn : DndEvent<EventPlayerSpawn>
 
     public override HookResult DefaultPostHookCallback(EventPlayerSpawn @event, GameEventInfo info)
     {         
-        if (@event.Userid == null)
-            throw new Exception($"{GetType().Name} Userid was null");
+        if (@event.Userid == null || @event.Userid.PawnIsAlive != true)
+            return HookResult.Continue;
 
         var dndPlayer = CommonMethods.RetrievePlayer(@event.Userid, true);
         if (@event.Userid.IsBot)

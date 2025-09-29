@@ -3,4 +3,5 @@
 public enum DndClass
 {
     Fighter = 1,
+    Rogue = 2,
 }
