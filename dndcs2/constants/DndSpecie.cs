@@ -3,4 +3,5 @@
 public enum DndSpecie
 {
     Human = 1,
+    Dragonborn = 2
 }

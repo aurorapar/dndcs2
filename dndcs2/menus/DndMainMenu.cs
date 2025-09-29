@@ -1,8 +1,12 @@
-﻿using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
 using CS2MenuManager.API.Class;
 using CS2MenuManager.API.Menu;
 using Dndcs2.constants;
+using Dndcs2.Sql;
 using static Dndcs2.messages.DndMessages;
+using static Dndcs2.constants.DndClassDescription;
+using static Dndcs2.constants.DndSpecieDescription;
 
 namespace Dndcs2.menus;
 
@@ -37,7 +41,31 @@ public class DndMainMenu : PlayerMenu
 
     public void SelectClass(CCSPlayerController player, ItemOption selectedOption)
     {
-        MessagePlayer(player, $"You picked {selectedOption.Text}");
+        MenuManager.CloseActiveMenu(player);
+        var selectedText = selectedOption.Text.Replace(" ", "_");
+        var dndClass = Enum.GetValues(typeof(DndClass)).Cast<DndClass>()
+            .ToList().FirstOrDefault(c => c.ToString().Equals(selectedText, StringComparison.OrdinalIgnoreCase));
+        var classDescription = DndClassDescriptions[dndClass];
+        classDescription = "<font color=\"lime\">" + selectedOption.Text + "</font><br>" + classDescription;
+        var result = CommonMethods.ChangeClass(player, dndClass);
+        if (!result)
+        {
+            if(CommonMethods.RetrievePlayer(player).DndClassId == (int) dndClass)
+                classDescription += $"<br><font color=\"red\">You are already a {selectedOption.Text}</red>";
+            else if (player.PawnIsAlive)
+                classDescription += "<br><font color=\"red\">You must not be alive to change class</font>";
+            else if(!CommonMethods.CanPlayClass(player, dndClass))
+                classDescription += $"<br><font color=\"red\">You do not meet the requirements to play {selectedOption.Text}</font>";
+        }
+        else
+        {
+            classDescription += $"<br><font color=\"lime\">You are now a {selectedOption.Text}</font>";
+        }
+        
+        Server.NextFrame(() =>
+        {
+            player.PrintToCenterHtml(classDescription); 
+        });
     }
     
     public void ShowSpecies(CCSPlayerController player, ItemOption selectedOption)
@@ -53,7 +81,31 @@ public class DndMainMenu : PlayerMenu
 
     public void SelectSpecie(CCSPlayerController player, ItemOption selectedOption)
     {
-        MessagePlayer(player, $"You picked {selectedOption.Text}");
+        MenuManager.CloseActiveMenu(player);
+        var selectedText = selectedOption.Text.Replace(" ", "_");
+        var dndSpecie = Enum.GetValues(typeof(DndSpecie)).Cast<DndSpecie>()
+            .ToList().FirstOrDefault(c => c.ToString().Equals(selectedText, StringComparison.OrdinalIgnoreCase));
+        var specieDescription = DndSpecieDescriptions[dndSpecie];
+        specieDescription = "<font color=\"lime\">" + selectedOption.Text + "</font><br>" + specieDescription;
+        var result = CommonMethods.ChangeSpecie(player, dndSpecie);
+        if (!result)
+        {
+            if(CommonMethods.RetrievePlayer(player).DndSpecieId == (int) dndSpecie)
+                specieDescription += $"<br><font color=\"red\">You are already a {selectedOption.Text}</red>";
+            else if (player.PawnIsAlive)
+                specieDescription += "<br><font color=\"red\">You must not be alive to change class</font>";
+            else if(!CommonMethods.CanPlaySpecie(player, dndSpecie))
+                specieDescription += $"<br><font color=\"red\">You do not meet the requirements to play {selectedOption.Text}</font>";
+        }
+        else
+        {
+            specieDescription += $"<br><font color=\"lime\">You are now a {selectedOption.Text}</font>";
+        }
+        
+        Server.NextFrame(() =>
+        {
+            player.PrintToCenterHtml(specieDescription); 
+        });
     }
     
     public void PlayerStats(CCSPlayerController player, ItemOption selectedOption)

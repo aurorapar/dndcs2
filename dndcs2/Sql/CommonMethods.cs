@@ -1,4 +1,5 @@
-﻿using CounterStrikeSharp.API.Core;
+﻿using System.Runtime.CompilerServices;
+using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.dtos;
@@ -76,6 +77,32 @@ public static class CommonMethods
         }
     }
     
+    public static DndClassProgress? RetrievePlayerClassProgress(CCSPlayerController player, constants.DndClass dndClass)
+    {
+        DndPlayer dndPlayer =  RetrievePlayer(player);        
+         
+        using (var connection = CreateContext())
+        {
+            var candidates = connection.DndClassProgresses
+                .Where(s => s.DndPlayerId == dndPlayer.DndPlayerId && s.DndClassId == (int) dndClass 
+                    && s.Enabled == true);
+            return candidates.FirstOrDefault();
+        }
+    }
+    
+    public static DndSpecieProgress? RetrievePlayerSpecieProgress(CCSPlayerController player, constants.DndSpecie dndSpecie)
+    {
+        DndPlayer dndPlayer =  RetrievePlayer(player);        
+         
+        using (var connection = CreateContext())
+        {
+            var candidates = connection.DndSpecieProgresses
+                .Where(s => s.DndPlayerId == dndPlayer.DndPlayerId && s.DndSpecieId == (int) dndSpecie 
+                                                                   && s.Enabled == true);
+            return candidates.FirstOrDefault();
+        }
+    }
+    
     public static DndClassProgress? RetrievePlayerClassProgress(DndPlayer player)
     {         
         using (var connection = CreateContext())
@@ -101,42 +128,61 @@ public static class CommonMethods
             (int)constants.DndClass.Fighter,
             (int)constants.DndSpecie.Human,
             DateTime.UtcNow
-        );        
+        );
         
         using (var connection = CreateContext())
         {
             connection.DndPlayers.Add(dndPlayer);
             connection.Entry(dndPlayer).State = EntityState.Added;
-            SaveChanges(connection);
-            
-            var classProgress = new DndClassProgress(
-                creator,
-                DateTime.UtcNow,
-                creator,
-                DateTime.UtcNow,
-                true,
-                dndPlayer.DndPlayerId,
-                dndPlayer.DndClassId
-            );
+            SaveChanges(connection);            
+        }
         
-            var specieProgress = new DndSpecieProgress(
-                creator,
-                DateTime.UtcNow,
-                creator,
-                DateTime.UtcNow,
-                true,
-                dndPlayer.DndPlayerId,
-                dndPlayer.DndSpecieId     
-            );
+        CreateNewClassProgress(player, constants.DndClass.Fighter, creator);
+        CreateNewSpecieProgress(player, constants.DndSpecie.Human, creator);
+        Dndcs2.Instance.Log.LogInformation($"Player {dndPlayer.DndPlayerAccountId} created");
+        return dndPlayer;
+    }
+
+    public static void CreateNewClassProgress(CCSPlayerController player, constants.DndClass dndClass, string creator)
+    {
+        var dndPlayer = RetrievePlayer(player);
+        var classProgress = new DndClassProgress(
+            creator,
+            DateTime.UtcNow,
+            creator,
+            DateTime.UtcNow,
+            true,
+            dndPlayer.DndPlayerId,
+            (int) dndClass
+        );
+
+        using (var connection = CreateContext())
+        {
             connection.DndClassProgresses.Add(classProgress);
-            connection.DndSpecieProgresses.Add(specieProgress);
             connection.Entry(classProgress).State = EntityState.Added;
+            SaveChanges(connection);
+        }
+    }
+    
+    public static void CreateNewSpecieProgress(CCSPlayerController player, constants.DndSpecie dndSpecie, string creator)
+    {
+        var dndPlayer = RetrievePlayer(player);
+        var specieProgress = new DndSpecieProgress(
+            creator,
+            DateTime.UtcNow,
+            creator,
+            DateTime.UtcNow,
+            true,
+            dndPlayer.DndPlayerId,
+            (int) dndSpecie
+        );
+
+        using (var connection = CreateContext())
+        {
+            connection.DndSpecieProgresses.Add(specieProgress);
             connection.Entry(specieProgress).State = EntityState.Added;
             SaveChanges(connection);
         }
-
-        // Dndcs2.DndLogger.LogInformation($"Player {dndPlayer.DndPlayerAccountId} created");
-        return dndPlayer;
     }
 
     public static DndPlayer TrackPlayerLogin(DndPlayer dndPlayer, DateTime loginTime, string creator)
@@ -278,5 +324,93 @@ public static class CommonMethods
         return RetrievePlayerSpecieProgress(player).DndLevelAmount;
     }
 
+    public static bool ChangeClass(CCSPlayerController player, constants.DndClass newClass)
+    {
+        if (player.PawnIsAlive)
+            return false;
+        
+        var dndPlayer = RetrievePlayer(player);
+        if (dndPlayer.DndClassId == (int)newClass)
+            return false;
+        
+        if (!CanPlayClass(player, newClass))
+            return false;
+        
+        var progress = RetrievePlayerClassProgress(player, newClass);
+        if (progress == null)
+            CreateNewClassProgress(player, newClass, "ChangeClass");
+        
+        dndPlayer.DndClassId = (int)newClass;
+        dndPlayer.UpdatedDate = DateTime.Now;
+        dndPlayer.UpdatedBy = "ChangeClass";
+        using (var connection = CreateContext())
+        {
+            connection.Entry(dndPlayer).State = EntityState.Modified;
+            SaveChanges(connection);
+        }
 
+        return true;
+    }
+
+    public static bool CanPlayClass(CCSPlayerController player, constants.DndClass dndClass)
+    {
+        var dndClassRequirements = Dndcs2.Instance.DndClassLookup[dndClass].DndClassRequirements;
+        
+        if (!dndClassRequirements.Any())
+            return true;
+        foreach (var requirement in dndClassRequirements)
+        {
+            var progress = RetrievePlayerClassProgress(player, (constants.DndClass) requirement.DndRequiredClassId);
+            if (progress == null)
+                return false;
+            if (progress.DndLevelAmount < requirement.DndRequiredClassLevel)
+                return false;
+        }
+        return true;
+    }
+    
+    public static bool ChangeSpecie(CCSPlayerController player, constants.DndSpecie newSpecie)
+    {
+        if (player.PawnIsAlive)
+            return false;
+        
+        var dndPlayer = RetrievePlayer(player);
+        if (dndPlayer.DndSpecieId == (int)newSpecie)
+            return false;
+        
+        if (!CanPlaySpecie(player, newSpecie))
+            return false;
+        
+        var progress = RetrievePlayerSpecieProgress(player, newSpecie);
+        if (progress == null)
+            CreateNewSpecieProgress(player, newSpecie, "ChangeSpecie");
+        
+        dndPlayer.DndSpecieId = (int)newSpecie;
+        dndPlayer.UpdatedDate = DateTime.Now;
+        dndPlayer.UpdatedBy = "ChangeSpecie";
+        using (var connection = CreateContext())
+        {
+            connection.Entry(dndPlayer).State = EntityState.Modified;
+            SaveChanges(connection);
+        }
+
+        return true;
+    }
+    
+    public static bool CanPlaySpecie(CCSPlayerController player, constants.DndSpecie dndSpecie)
+    {
+        var dndSpecieRequirements = Dndcs2.Instance.DndSpecieLookup[dndSpecie].DndSpecieRequirements;
+        
+        if (!dndSpecieRequirements.Any())
+            return true;
+        foreach (var requirement in dndSpecieRequirements)
+        {
+            var progress = RetrievePlayerSpecieProgress(player, (constants.DndSpecie) requirement.DndRequiredSpecieLevel);
+            if (progress == null)
+                return false;
+            if (progress.DndLevelAmount < requirement.DndRequiredSpecieLevel)
+                return false;
+        }
+        return true;
+    }
 }
