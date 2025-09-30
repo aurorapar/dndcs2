@@ -17,7 +17,7 @@ public class GetPlayerTarget : DndCommand
         if (player == null)
             return;
         
-        Dndcs2.RaytracePlayer(player);  
+        Dndcs2.GetViewPlayer(player);  
     }
 
     public override HookResult ChatHandler(EventPlayerChat @event, GameEventInfo info)
@@ -25,7 +25,7 @@ public class GetPlayerTarget : DndCommand
         var player = Utilities.GetPlayerFromUserid(@event.Userid);
         if(player == null)
             return HookResult.Continue;
-        Dndcs2.RaytracePlayer(player); 
+        Dndcs2.GetViewPlayer(player); 
         return HookResult.Continue;
     }
 }

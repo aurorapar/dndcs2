@@ -1,4 +1,5 @@
-﻿using CounterStrikeSharp.API;
+﻿using System.Numerics;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
@@ -31,26 +32,15 @@ public class Teleport : DndCommand
     }
 
     public void DoTeleport(CCSPlayerController player)
-    {
-        Vector eyePosition = (Vector) player.PlayerPawn.Value.AbsOrigin;
-        var startPosition = (eyePosition.X, eyePosition.Y, eyePosition.Z);
-        startPosition.Z += player.PlayerPawn.Value.ViewOffset.Z;
-
-        QAngle eyeAngles = player.PlayerPawn.Value.EyeAngles;
-            
-        Vector forward = new();
-            
-        NativeAPI.AngleVectors(eyeAngles.Handle, forward.Handle, 0, 0);
-        Vector endOrigin = new(startPosition.X + forward.X * 50, startPosition.Y + forward.Y * 50, startPosition.Z + forward.Z * 50);
-        
-        foreach(var target in Utilities.GetPlayers())
+    {        
+        var viewLocation = Dndcs2.GetViewLocation(player, 700, 100);
+        //viewLocation.Z += player.PlayerPawn.Value.ViewOffset.Z;
+        player.PlayerPawn.Value.Teleport(viewLocation);
+        int userId = (int) player.UserId;
+        Server.NextFrame(() =>
         {
-            if (target.PawnIsAlive && target.Team != player.Team)
-            {
-                MessagePlayer(player, $"Teleporting {target.PlayerName}");
-                target.PlayerPawn.Value.Teleport(endOrigin);
-                break;
-            }
-        }
+            var teleportingPlayer = Utilities.GetPlayerFromUserid(userId);
+            Dndcs2.IsPlayerStuck(teleportingPlayer);    
+        });        
     }
 }

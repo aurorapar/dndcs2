@@ -6,6 +6,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Menu;
 using CounterStrikeSharp.API.Modules.Utils;
@@ -156,20 +157,107 @@ public partial class Dndcs2
         ulong content,
         CGameTrace* pGameTrace
     );
+    
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private unsafe delegate bool TraceShapeRayFilterDelegate(
+        IntPtr GameTraceManager,
+        Ray* trace,
+        IntPtr vecStart,
+        IntPtr vecEnd,
+        CTraceFilter* traceFilter,
+        CGameTrace* pGameTrace
+    );
 
-    public static void RaytracePlayer(CCSPlayerController player)
+    public static Vector3 GetViewLocation(CCSPlayerController player, int distance = 8192, int cutShortDistance = 0)
+    {
+        var eyePosition = player.PlayerPawn.Value.AbsOrigin;
+        Vector startOrigin = new Vector(eyePosition.X, eyePosition.Y, eyePosition.Z + player.PlayerPawn.Value.ViewOffset.Z);
+
+        QAngle eyeAngles = player.PlayerPawn.Value.EyeAngles;
+            
+        Vector forward = new();
+            
+        NativeAPI.AngleVectors(eyeAngles.Handle, forward.Handle, 0, 0);
+        Vector endOrigin = new(startOrigin.X + forward.X * distance, startOrigin.Y + forward.Y * distance, startOrigin.Z + forward.Z * distance);
+        
+        unsafe
+        {            
+            CGameTrace* trace = stackalloc CGameTrace[1];
+            var gameTraceManager = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("GameTraceManager"));
+            int code = *(int*)(gameTraceManager + 3);            
+            IntPtr gameTraceManagerAddress = gameTraceManager + code + 7;;
+
+            IntPtr traceFunc = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("TraceFunc"));
+            var traceShape = Marshal.GetDelegateForFunctionPointer<TraceShapeDelegate>(traceFunc);
+            ulong mask = (ulong) (RaytraceMasks.Solid | RaytraceMasks.Window | RaytraceMasks.Debris | RaytraceMasks.Hitbox);
+            ulong targetMask = (ulong) RaytraceMasks.Sky;
+            
+            var buyzoneHandles = Utilities.FindAllEntitiesByDesignerName<CBuyZone>("func_buyzone")
+                .Select(e => (IntPtr) e.Handle).ToList();
+            var bombsiteHandles = Utilities.FindAllEntitiesByDesignerName<CBombTarget>("func_bomb_target")
+                .Select(e => (IntPtr) e.Handle).ToList();
+            var filters = new List<IntPtr>()
+            {
+                player.PlayerPawn.Value.Handle
+            };
+            filters.AddRange(buyzoneHandles);
+            filters.AddRange(bombsiteHandles);
+
+            traceShape(*(IntPtr*)gameTraceManagerAddress, startOrigin.Handle, endOrigin.Handle, player.PlayerPawn.Value.Handle, ~0ul,
+                    targetMask, trace);
+
+            CGameTrace? possibleTraceResult = *trace;
+            if (!possibleTraceResult.HasValue)
+                return (Vector3) startOrigin;
+
+            var traceResult = (CGameTrace)possibleTraceResult;
+
+            CCSPlayerController? target = null;
+            if ((CBaseEntity?)Activator.CreateInstance(typeof(CBaseEntity), traceResult.HitEntity) is
+                { } entityInstance)
+            {
+                if (entityInstance == null)
+                    return (Vector3) startOrigin;
+                return new Vector3(
+                    traceResult.EndPos.X + forward.X * -cutShortDistance, 
+                    traceResult.EndPos.Y + forward.Y * -cutShortDistance, 
+                    traceResult.EndPos.Z + forward.Z * -cutShortDistance
+                );
+                                        
+            }
+        }        
+        
+        return (Vector3) startOrigin;
+    }
+
+    public static CCSPlayerController? GetViewPlayer(CCSPlayerController player)
     {
         ulong mask = (ulong) (RaytraceMasks.Solid | RaytraceMasks.Player | RaytraceMasks.Npc | RaytraceMasks.Window | RaytraceMasks.Debris |
                               RaytraceMasks.Hitbox);
         ulong targetMask = (ulong) RaytraceMasks.Player;
-        var target = Raytrace<CCSPlayerPawn, CCSPlayerController>(player, mask, targetMask);
-        if(target == null)
-            return;
-        MessagePlayer(player, $"You would hit {target.PlayerName}");
+
+        var buyzoneHandles = Utilities.FindAllEntitiesByDesignerName<CBuyZone>("func_buyzone")
+            .Select(e => (IntPtr) e.Handle).ToList();
+        var bombsiteHandles = Utilities.FindAllEntitiesByDesignerName<CBombTarget>("func_bomb_target")
+            .Select(e => (IntPtr) e.Handle).ToList();
+        var filters = new List<IntPtr>()
+        {
+            player.PlayerPawn.Value.Handle
+        };
+        filters.AddRange(buyzoneHandles);
+        filters.AddRange(bombsiteHandles);        
+        
+        foreach(IntPtr filter in filters)
+        {
+            var target = Raytrace(player, mask, targetMask, filter);
+            if (target != null)
+                return target;
+        }
+
+        return null;
     }
     
-    public static TU? Raytrace<T, TU>(CCSPlayerController player, ulong mask, ulong targetMask)
-    where TU : CBaseEntity
+    public static CCSPlayerController? Raytrace(CCSPlayerController player, ulong mask, ulong targetMask, IntPtr skip)
     {
         unsafe
         {
@@ -184,11 +272,8 @@ public partial class Dndcs2
             Vector forward = new();
             
             NativeAPI.AngleVectors(eyeAngles.Handle, forward.Handle, 0, 0);
+            startOrigin = new(startOrigin.X + forward.X * 40, startOrigin.Y + forward.Y * 40, startOrigin.Z + forward.Z * 40);
             Vector endOrigin = new(startOrigin.X + forward.X * 8192, startOrigin.Y + forward.Y * 8192, startOrigin.Z + forward.Z * 8192);
-
-            
-
-            IntPtr skip = player.PlayerPawn.Value.Handle;
             
             CGameTrace* trace = stackalloc CGameTrace[1];
             var gameTraceManager = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("GameTraceManager"));
@@ -205,19 +290,87 @@ public partial class Dndcs2
 
             var traceResult = (CGameTrace) possibleTraceResult;
 
-            TU? target = null;
-            if ((CCSPlayerPawn?)Activator.CreateInstance(typeof(T), traceResult.HitEntity) is
+            CCSPlayerController? target = null;
+            if ((CCSPlayerPawn?)Activator.CreateInstance(typeof(CCSPlayerPawn), traceResult.HitEntity) is
                 { } entityInstance)
             {
-                var test = ((CCSPlayerPawn)entityInstance).OriginalController.Value;
-                if (test is TU)
-                {
-                    return (TU)Convert.ChangeType(test, typeof(TU));
-                }                
-            }            
+                if(entityInstance.DesignerName.Equals("player"))
+                    return entityInstance.OriginalController.Value;
+            }                
+            
+            return null;                         
+        }
+    }
+    
+    public static bool IsPlayerStuck(CCSPlayerController player)
+    {
+        unsafe
+        {
+            var pawn = player.PlayerPawn.Value;
+            Vector origin = pawn.AbsOrigin!;
+            
+            var pawnCollisionMins = pawn.Collision.Mins;
+            var pawnCollisionMaxs = pawn.Collision.Maxs;
+            var ray = new Ray(
+                new Vector3(pawnCollisionMins.X, pawnCollisionMins.Y, pawnCollisionMins.Z),
+                new Vector3(pawnCollisionMaxs.X, pawnCollisionMaxs.Y, pawnCollisionMaxs.Z)            
+            );
+            
+            CTraceFilter filter = new CTraceFilter(pawn.Index, pawn.Index)
+            {
+                m_nObjectSetMask = 0xf,
+                m_nCollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT,
+                m_nInteractsWith = pawn.Collision.CollisionAttribute.InteractsWith,
+                m_nInteractsExclude = 0,
+                m_nBits = 11,
+                m_bIterateEntities = true,
+                m_nInteractsAs = 0x40000
+            };        
+            filter.m_nHierarchyIds[0] = pawn.Collision.CollisionAttribute.HierarchyId;
+            filter.m_nHierarchyIds[1] = 0;            
+            
+            IntPtr traceShape = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("TraceShape"));
+            var traceShapeRayFilter = Marshal.GetDelegateForFunctionPointer<TraceShapeRayFilterDelegate>(traceShape);            
+            
+            CGameTrace* _trace = stackalloc CGameTrace[1];
+            CTraceFilter* _filter = stackalloc CTraceFilter[1];
+            
+            IntPtr cTraceFilterVTable = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("CTraceFilterVtable"));
+            if (cTraceFilterVTable == IntPtr.Zero)
+                throw new Exception("Failed to find cTraceFilterVTable signature.");
+            int filterCode = *(int*)(cTraceFilterVTable + 3);
+            IntPtr _vtable = cTraceFilterVTable + filterCode + 7;
+            
+            var gameTraceManager = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("GameTraceManager"));
+            if (gameTraceManager == IntPtr.Zero)
+                throw new Exception("Failed to find gameTraceManager signature.");
+            int code = *(int*)(gameTraceManager + 3);            
+            IntPtr gameTraceManagerAddress = gameTraceManager + code + 7;;
+            
+            *_filter = filter;
+            _filter->Vtable = (void*)_vtable;
+            
+            PrintMessageToConsole("made it to the call");
+            traceShapeRayFilter(
+                *(nint*) gameTraceManagerAddress, 
+                &ray, 
+                origin.Handle,
+                origin.Handle, 
+                _filter,                 
+                _trace
+            );
+            var gameTrace = (*_trace);
+            var entityInstance = (CEntityInstance?)Activator.CreateInstance(typeof(CCSPlayerPawn), gameTrace.HitEntity);
+            foreach (var entity in Utilities.GetAllEntities())
+            {
+                if(entity.Index == entityInstance.Index)
+                    MessagePlayer(player, entity.DesignerName);
+            }
+            var result = (*_trace).Fraction;
+            // MessagePlayer(player, $"{result}");
         }
 
-        return null;
+        return false;
     }
 
 }
