@@ -8,6 +8,7 @@ using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Memory;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Menu;
 using CounterStrikeSharp.API.Modules.Utils;
 using dndcs2.constants;
@@ -54,6 +55,29 @@ public partial class Dndcs2
         .AddRange(Snipers)
         .AddRange(Grenades)
     ;
+    
+    public static void DamageTarget(CCSPlayerController attacker, CCSPlayerController victim, int amount, bool separateDamage = true, DamageTypes_t damageType = DamageTypes_t.DMG_BULLET)
+    {
+        var size = Schema.GetClassSize("CTakeDamageInfo");
+        var ptr = Marshal.AllocHGlobal(size);
+    
+        for (var i = 0; i < size; i++)
+            Marshal.WriteByte(ptr, i, 0);
+    
+        var damageInfo = new CTakeDamageInfo(ptr);
+        var attackerInfo = new CAttackerInfo(attacker);
+    
+        Marshal.StructureToPtr(attackerInfo, new IntPtr(ptr.ToInt64() + 0x80), false);
+    
+        Schema.SetSchemaValue(damageInfo.Handle, "CTakeDamageInfo", "m_hInflictor", attacker.Pawn.Raw);
+        Schema.SetSchemaValue(damageInfo.Handle, "CTakeDamageInfo", "m_hAttacker", attacker.Pawn.Raw);
+        Schema.SetSchemaValue(damageInfo.Handle, "CTakeDamageInfo", "m_bitsDamageType", damageType);
+    
+        damageInfo.Damage = amount;
+    
+        VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Invoke(victim.Pawn.Value, damageInfo);
+        Marshal.FreeHGlobal(ptr);
+    }
          
     public static void ShowDndXp(CCSPlayerController player, CCSPlayerController target)
     {
@@ -373,4 +397,210 @@ public partial class Dndcs2
         return false;
     }
 
+    public static void SpawnSmokeGrenade(Vector position, QAngle angle, Vector velocity, CsTeam team)
+    {
+        var grenade = CSmokeGrenadeProjectile_CreateFunc.Invoke(
+            position!.Handle,
+            angle!.Handle,
+            velocity!.Handle,
+            velocity.Handle,
+            IntPtr.Zero,
+            45,
+            (int)team);
+    }
+    
+    public static CMolotovProjectile SpawnMolotovGrenade(Vector position, QAngle angle, Vector velocity, CsTeam team)
+    {
+        var grenade = CMolotovProjectile_CreateFunc.Invoke(
+            position!.Handle,
+            angle!.Handle,
+            velocity!.Handle,
+            velocity.Handle,
+            IntPtr.Zero,
+            46
+        );
+        
+        grenade.Teleport(position, angle, velocity);
+        grenade.InitialPosition.X = position.X;
+        grenade.InitialPosition.Y = position.Y;
+        grenade.InitialPosition.Z = position.Z;
+        
+        grenade.InitialVelocity.X = velocity.X;
+        grenade.InitialVelocity.Y = velocity.Y;
+        grenade.InitialVelocity.Z = velocity.Z;
+        
+        grenade.AngVelocity.X = velocity.X;
+        grenade.AngVelocity.Y = velocity.Y;
+        grenade.AngVelocity.Z = velocity.Z;
+        grenade.TeamNum = (byte)team;
+        return grenade;
+    }
+    
+    public static void SpawnHeGrenade(Vector position, QAngle angle, Vector velocity, CsTeam team)
+    {
+        var grenade = CHEGrenadeProjectile_CreateFunc.Invoke(
+            position!.Handle,
+            angle!.Handle,
+            velocity!.Handle,
+            velocity.Handle,
+            IntPtr.Zero,
+            44
+        );
+        
+        grenade.Teleport(position, angle, velocity);
+        grenade.InitialPosition.X = position.X;
+        grenade.InitialPosition.Y = position.Y;
+        grenade.InitialPosition.Z = position.Z;
+        
+        grenade.InitialVelocity.X = velocity.X;
+        grenade.InitialVelocity.Y = velocity.Y;
+        grenade.InitialVelocity.Z = velocity.Z;
+        
+        grenade.AngVelocity.X = velocity.X;
+        grenade.AngVelocity.Y = velocity.Y;
+        grenade.AngVelocity.Z = velocity.Z;
+        grenade.TeamNum = (byte)team;
+    }
+    
+    public static void SpawnDecoyGrenade(Vector position, QAngle angle, Vector velocity, CsTeam team)
+    {
+        var grenade = CDecoyProjectile_CreateFunc.Invoke(
+            position!.Handle,
+            angle!.Handle,
+            velocity!.Handle,
+            velocity.Handle,
+            IntPtr.Zero,
+            47
+        );
+        
+        grenade.Teleport(position, angle, velocity);
+        grenade.InitialPosition.X = position.X;
+        grenade.InitialPosition.Y = position.Y;
+        grenade.InitialPosition.Z = position.Z;
+        
+        grenade.InitialVelocity.X = velocity.X;
+        grenade.InitialVelocity.Y = velocity.Y;
+        grenade.InitialVelocity.Z = velocity.Z;
+        
+        grenade.AngVelocity.X = velocity.X;
+        grenade.AngVelocity.Y = velocity.Y;
+        grenade.AngVelocity.Z = velocity.Z;
+        grenade.TeamNum = (byte)team;
+    }
+    
+    public static void SpawnFlashbang(Vector position, QAngle angle, Vector velocity, CsTeam team)
+    {
+        var newPosition = new Vector(position.X, position.Y, position.Z);
+        var newAngle = new QAngle(angle.X, angle.Y, angle.Z);
+        var newVelocity = new Vector(velocity.X, velocity.Y, velocity.Z);
+        var newTeam = (int)team;
+        Server.NextFrame(() =>
+        {
+            var grenade = Utilities.CreateEntityByName<CFlashbangProjectile>("flashbang_projectile");
+            grenade.Teleport(position, angle, velocity);
+            grenade.InitialPosition.X = newPosition.X;
+            grenade.InitialPosition.Y = newPosition.Y;
+            grenade.InitialPosition.Z = newPosition.Z;
+        
+            grenade.InitialVelocity.X = newVelocity.X;
+            grenade.InitialVelocity.Y = newVelocity.Y;
+            grenade.InitialVelocity.Z = newVelocity.Z;
+        
+            grenade.AngVelocity.X = newVelocity.X;
+            grenade.AngVelocity.Y = newVelocity.Y;
+            grenade.AngVelocity.Z = newVelocity.Z;
+            
+            grenade.TeamNum = (byte)newTeam; 
+        });
+    }
+    
+    public static MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, int, CSmokeGrenadeProjectile>
+        CSmokeGrenadeProjectile_CreateFunc = new(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                ? @"55 4C 89 C1 48 89 E5 41 57 49 89 FF 41 56 45 89 CE"
+                : @"48 8B C4 48 89 58 ? 48 89 68 ? 48 89 70 ? 57 41 56 41 57 48 81 EC ? ? ? ? 48 8B B4 24 ? ? ? ? 4D 8B F8"
+        );
+
+    public static MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, CHEGrenadeProjectile>
+        CHEGrenadeProjectile_CreateFunc = new(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                ? "55 4C 89 C1 48 89 E5 41 57 49 89 FF 41 56 49 89 D6"
+                : "48 89 5C 24 08 48 89 6C 24 10 48 89 74 24 18 57 48 83 EC 40 48 8B 6C 24 70"
+        );
+    
+    public static MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, CMolotovProjectile>
+        CMolotovProjectile_CreateFunc = new(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                ? "55 48 8D 05 ? ? ? ? 48 89 E5 41 57 41 56 41 55 41 54 49 89 FC 53 48 81 EC ? ? ? ? 4C 8D 35"
+                : "48 8B C4 48 89 58 10 4C 89 40 18 48 89 48 08"
+        );
+    
+    public static MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, CHEGrenadeProjectile>
+        CDecoyProjectile_CreateFunc = new(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                ? "55 4C 89 C1 48 89 E5 41 57 45 89 CF 41 56 49 89 FE 41 55 49 89 D5 48 89 F2 48 89 FE 41 54 48 8D 3D 72 EA 84 FF"
+                : "48 8B C4 55 56 48 81 EC 58 01 00 00"
+        );
+    
+    public static Vector3 PlaceGrenade(Vector3 location)
+    {
+        var grenadeLocation = new Vector(location.X, location.Y, location.Z);
+        QAngle eyeAngles = new QAngle(90, 0, 0);
+            
+        Vector forward = new();
+        NativeAPI.AngleVectors(eyeAngles.Handle, forward.Handle, 0, 0);
+        Vector newLocation = new Vector(grenadeLocation.X + forward.X * 8192, grenadeLocation.Y + forward.Y * 8192, grenadeLocation.Z + forward.Z * 8192);
+        
+        unsafe
+        {            
+            CGameTrace* trace = stackalloc CGameTrace[1];
+            var gameTraceManager = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("GameTraceManager"));
+            int code = *(int*)(gameTraceManager + 3);            
+            IntPtr gameTraceManagerAddress = gameTraceManager + code + 7;;
+
+            IntPtr traceFunc = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("TraceFunc"));
+            var traceShape = Marshal.GetDelegateForFunctionPointer<TraceShapeDelegate>(traceFunc);
+            ulong mask = (ulong) (RaytraceMasks.Solid | RaytraceMasks.Window | RaytraceMasks.Debris | RaytraceMasks.Hitbox | RaytraceMasks.Player | RaytraceMasks.Npc);
+            ulong targetMask = (ulong) RaytraceMasks.Sky;
+            
+            var buyzoneHandles = Utilities.FindAllEntitiesByDesignerName<CBuyZone>("func_buyzone")
+                .Select(e => (IntPtr) e.Handle).ToList();
+            var bombsiteHandles = Utilities.FindAllEntitiesByDesignerName<CBombTarget>("func_bomb_target")
+                .Select(e => (IntPtr) e.Handle).ToList();
+    
+            traceShape(*(IntPtr*)gameTraceManagerAddress, grenadeLocation.Handle, newLocation.Handle, 0, ~0ul,
+                    targetMask, trace);
+
+            CGameTrace? possibleTraceResult = *trace;
+            if (!possibleTraceResult.HasValue)
+            {
+                BroadcastMessage("No raytrace successful");
+                return (Vector3)location;
+            }
+
+            var traceResult = (CGameTrace)possibleTraceResult;
+
+            CCSPlayerController? target = null;
+            if ((CBaseEntity?)Activator.CreateInstance(typeof(CBaseEntity), traceResult.HitEntity) is
+                { } entityInstance)
+            {
+                BroadcastMessage(entityInstance.DesignerName);
+                if (entityInstance == null)
+                {
+                    BroadcastMessage("No raytrace successful");
+                    return (Vector3)location;
+                }
+
+                return new Vector3(
+                    traceResult.EndPos.X, 
+                    traceResult.EndPos.Y, 
+                    traceResult.EndPos.Z + 150
+                );
+                                        
+            }
+        }        
+        
+        BroadcastMessage("No raytrace successful");
+        return location;
+    }
 }

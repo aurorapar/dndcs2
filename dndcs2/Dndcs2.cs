@@ -1,5 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Memory;
 using Dndcs2.DndClasses;
 using Dndcs2.DndSpecies;
 using Dndcs2.dtos;
@@ -103,6 +104,8 @@ public partial class Dndcs2 : BasePlugin
             CommonMethods.TrackPlayerLogout(dndPlayer, "Mod unloading");
             roundEndEvent.DoDefaultPostCallback(5, player, dndPlayer);    
         }
+        
+        VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Unhook(OnTakeDamageHook.OnTakeDamage, HookMode.Pre);
         
         using(var context = CommonMethods.CreateContext())
             CommonMethods.SaveChanges(context);

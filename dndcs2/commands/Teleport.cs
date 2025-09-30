@@ -1,10 +1,7 @@
-﻿using System.Numerics;
-using CounterStrikeSharp.API;
+﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
-using CounterStrikeSharp.API.Modules.Utils;
-using static Dndcs2.messages.DndMessages;
 
 namespace Dndcs2.commands;
 
@@ -32,11 +29,20 @@ public class Teleport : DndCommand
     }
 
     public void DoTeleport(CCSPlayerController player)
-    {        
+    {
+        var target = player;
+        foreach (var candidate in Utilities.GetPlayers())
+        {
+            if (candidate.PawnIsAlive && candidate.Team != player.Team)
+            {
+                target = candidate;
+                break;
+            }
+        }
         var viewLocation = Dndcs2.GetViewLocation(player, 700, 100);
         //viewLocation.Z += player.PlayerPawn.Value.ViewOffset.Z;
-        player.PlayerPawn.Value.Teleport(viewLocation);
-        int userId = (int) player.UserId;
+        target.PlayerPawn.Value.Teleport(viewLocation);
+        int userId = (int) target.UserId;
         Server.NextFrame(() =>
         {
             var teleportingPlayer = Utilities.GetPlayerFromUserid(userId);

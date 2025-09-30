@@ -16,6 +16,8 @@ public partial class Dndcs2
         var dndXpLog = new DndXpLog();
         var getplayertarget = new GetPlayerTarget();
         var teleport = new Teleport();
+        var flashbang = new Flashbang();
+        var testDamage = new TestDamage();
     }
 }
 

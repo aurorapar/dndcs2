@@ -1,5 +1,6 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Events;
+using CounterStrikeSharp.API.Modules.Memory;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using static Dndcs2.messages.DndMessages;
@@ -11,6 +12,8 @@ public partial class Dndcs2
     public List<DndEventContainer> DndEvents { get; private set; } = new();
     public void RegisterEventCallbacks()
     {
+        VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamageHook.OnTakeDamage, HookMode.Pre);
+        
         DndEvents = new List<DndEventContainer>()
         {
             new PlayerDeath(),
