@@ -40,8 +40,8 @@ public class Fighter : DndBaseClass
                 var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
                 var fighterLevel = CommonMethods.RetrievePlayerClassLevel(player);
                 MessagePlayer(player,
-                    $"You gained {5 * fighterLevel} bonus health for being a Level {fighterLevel} {constants.DndClass.Fighter}");
-                playerBaseStats.ChangeMaxHealth(5 * fighterLevel);
+                    $"You gained {(int) (2.5 * fighterLevel)} bonus health for being a Level {fighterLevel} {constants.DndClass.Fighter}");
+                playerBaseStats.ChangeMaxHealth((int) (2.5 * fighterLevel));
 
             });
             return HookResult.Continue;

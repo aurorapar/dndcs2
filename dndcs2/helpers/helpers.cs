@@ -1,15 +1,21 @@
 ﻿using System.Collections.Immutable;
+using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Menu;
 using CounterStrikeSharp.API.Modules.Utils;
+using dndcs2.constants;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using Dndcs2.Sql;
+using Dndcs2.@struct;
+using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
 namespace Dndcs2;
 
@@ -139,4 +145,79 @@ public partial class Dndcs2
         BroadcastMessage(message);
         return message;
     }
+    
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private unsafe delegate bool TraceShapeDelegate(
+        IntPtr GameTraceManager,
+        IntPtr vecStart,
+        IntPtr vecEnd,
+        IntPtr skip,
+        ulong mask,
+        ulong content,
+        CGameTrace* pGameTrace
+    );
+
+    public static void RaytracePlayer(CCSPlayerController player)
+    {
+        ulong mask = (ulong) (RaytraceMasks.Solid | RaytraceMasks.Player | RaytraceMasks.Npc | RaytraceMasks.Window | RaytraceMasks.Debris |
+                              RaytraceMasks.Hitbox);
+        ulong targetMask = (ulong) RaytraceMasks.Player;
+        var target = Raytrace<CCSPlayerPawn, CCSPlayerController>(player, mask, targetMask);
+        if(target == null)
+            return;
+        MessagePlayer(player, $"You would hit {target.PlayerName}");
+    }
+    
+    public static TU? Raytrace<T, TU>(CCSPlayerController player, ulong mask, ulong targetMask)
+    where TU : CBaseEntity
+    {
+        unsafe
+        {
+            if (player == null) 
+                return null;
+            
+            var eyePosition = player.PlayerPawn.Value.AbsOrigin;
+            Vector startOrigin = new Vector(eyePosition.X, eyePosition.Y, eyePosition.Z + player.PlayerPawn.Value.ViewOffset.Z);
+
+            QAngle eyeAngles = player.PlayerPawn.Value.EyeAngles;
+            
+            Vector forward = new();
+            
+            NativeAPI.AngleVectors(eyeAngles.Handle, forward.Handle, 0, 0);
+            Vector endOrigin = new(startOrigin.X + forward.X * 8192, startOrigin.Y + forward.Y * 8192, startOrigin.Z + forward.Z * 8192);
+
+            
+
+            IntPtr skip = player.PlayerPawn.Value.Handle;
+            
+            CGameTrace* trace = stackalloc CGameTrace[1];
+            var gameTraceManager = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("GameTraceManager"));
+            int code = *(int*)(gameTraceManager + 3);            
+            IntPtr gameTraceManagerAddress = gameTraceManager + code + 7;;
+
+            IntPtr traceFunc = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("TraceFunc"));
+            var traceShape = Marshal.GetDelegateForFunctionPointer<TraceShapeDelegate>(traceFunc);
+            traceShape(*(IntPtr*)gameTraceManagerAddress, startOrigin.Handle, endOrigin.Handle, skip, mask,targetMask, trace);
+            
+            CGameTrace? possibleTraceResult = *trace;
+            if (!possibleTraceResult.HasValue)
+                return null;
+
+            var traceResult = (CGameTrace) possibleTraceResult;
+
+            TU? target = null;
+            if ((CCSPlayerPawn?)Activator.CreateInstance(typeof(T), traceResult.HitEntity) is
+                { } entityInstance)
+            {
+                var test = ((CCSPlayerPawn)entityInstance).OriginalController.Value;
+                if (test is TU)
+                {
+                    return (TU)Convert.ChangeType(test, typeof(TU));
+                }                
+            }            
+        }
+
+        return null;
+    }
+
 }
