@@ -82,6 +82,7 @@ public abstract class DndBaseClass : DndClass
             new Tuple<constants.DndClass, Type>(constants.DndClass.Fighter, typeof(DndClasses.Fighter)),
             new Tuple<constants.DndClass, Type>(constants.DndClass.Rogue, typeof(DndClasses.Rogue)),
             new Tuple<constants.DndClass, Type>(constants.DndClass.Cleric, typeof(DndClasses.Cleric)),
+            new Tuple<constants.DndClass, Type>(constants.DndClass.Wizard, typeof(DndClasses.Wizard)),
         };        
         
         var dndClassEnumType = typeof(constants.DndClass);

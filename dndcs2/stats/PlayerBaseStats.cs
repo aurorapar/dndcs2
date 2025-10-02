@@ -29,6 +29,8 @@ public class PlayerBaseStats
     public bool Guidance;
     public Vector? InfernoLocation;
     public int InfernoSpawnedTick { get; set; }
+    public Vector? FlashbangLocation;
+    public int FlashbangSpawnedTick { get; set; }
 
 
     public PlayerBaseStats(int userid)
@@ -223,12 +225,10 @@ public class PlayerBaseStats
             MessagePlayer(aggressor, $"Someone succeeded on your {saveType} Save DC of {diceCheckTarget}");
             return true;
         }
-        else
-        {
-            MessagePlayer(victim, $"You failed a {saveType} Save DC of {diceCheckTarget}");
-            MessagePlayer(aggressor, $"Someone failed your {saveType} Save DC of {diceCheckTarget}");
-            return false;
-        }
+       
+        MessagePlayer(victim, $"You failed a {saveType} Save DC of {diceCheckTarget}");
+        MessagePlayer(aggressor, $"Someone failed your {saveType} Save DC of {diceCheckTarget}");
+        return false;
     }
 
     public void SetGoodStat(PlayerStat stat)

@@ -7,5 +7,6 @@ public static class DndClassDescription
         { DndClass.Fighter, "A master of the martial arts, constantly refining their skill and honing their talents" },
         { DndClass.Rogue, "Subtle by nature, cruel through action, always effective in results" },
         { DndClass.Cleric, "Intermediaries between the mortal world and the distant planes of the gods" },
+        { DndClass.Wizard, "Draws on the subtle weave of magic that permeates the cosmos to cast dazzling, and frightening, spells" },
     };
 }

@@ -32,6 +32,7 @@ public abstract class DndAbility : DndCommand
     {
         new Guidance();
         new Mana();
+        new ColorSpray();
     }
     
     public sealed override void CommandHandler(CCSPlayerController? player, CommandInfo command)
@@ -107,10 +108,8 @@ public abstract class DndAbility : DndCommand
             {
                 Dndcs2.Instance.Log.LogInformation("Checking class requirements");
                 if (req.DndClass != playerClass)
-                    return false;
-  
-                if (CommonMethods.RetrievePlayerClassLevel(player) < (req.ClassLevel ?? 1))
-                    return false;
+                    if (CommonMethods.RetrievePlayerClassLevel(player) < (req.ClassLevel ?? 1))
+                        continue;
                 
                 return true;
             }
@@ -119,26 +118,24 @@ public abstract class DndAbility : DndCommand
             {
                 Dndcs2.Instance.Log.LogInformation("Checking specie requirements");
                 if (req.DndSpecie != playerSpecie)
-                    return false;
-                if (CommonMethods.RetrievePlayerSpecieLevel(player) < (req.SpecieLevel ?? 1))
-                    return false;
+                    if (CommonMethods.RetrievePlayerSpecieLevel(player) < (req.SpecieLevel ?? 1))
+                        continue;
                 
                 return true;
             }
 
             if (req.DndSpecie != null && req.DndClass != null)
             {
-                if(playerClass != req.DndClass && playerSpecie != req.DndSpecie)
-                    return false;
-                if(CommonMethods.RetrievePlayerClassLevel(player) < (req.ClassLevel ?? 1))
-                    return false;
-                if (CommonMethods.RetrievePlayerSpecieLevel(player) < (req.SpecieLevel ?? 1))
-                    return false;
+                if(playerClass != req.DndClass && playerSpecie != req.DndSpecie)                    
+                    if(CommonMethods.RetrievePlayerClassLevel(player) < (req.ClassLevel ?? 1))
+                        if (CommonMethods.RetrievePlayerSpecieLevel(player) < (req.SpecieLevel ?? 1))
+                            continue;
+                
                 return true;
             }
         }
 
-        return true;
+        return false;
     }
     
     public abstract bool UseAbility(CCSPlayerController player, PlayerBaseStats playerStats, List<string> arguments);    

@@ -13,6 +13,7 @@ public class Mana : DndAbility
             new List<AbilityClassSpecieRequirement>()
             {
                 ClassSpecieAbilityRequirementFactory.ClassSpecieAbilityRequirement(DndClass.Cleric),
+                ClassSpecieAbilityRequirementFactory.ClassSpecieAbilityRequirement(DndClass.Wizard),
             }, 
             0, 
             null, 

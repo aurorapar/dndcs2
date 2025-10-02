@@ -5,4 +5,5 @@ public enum DndClass
     Fighter = 1,
     Rogue = 2,
     Cleric = 3,
+    Wizard = 4,
 }

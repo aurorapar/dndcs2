@@ -475,30 +475,38 @@ public partial class Dndcs2
         grenade.TeamNum = (byte)team;
     }
     
-    public static void SpawnFlashbang(Vector position, QAngle angle, Vector velocity, CsTeam team)
+    public static void SpawnFlashbang(Vector position, QAngle angle, Vector velocity, CsTeam team, bool detonateImmediately = false)
     {
-        var newPosition = new Vector(position.X, position.Y, position.Z);
-        var newAngle = new QAngle(angle.X, angle.Y, angle.Z);
-        var newVelocity = new Vector(velocity.X, velocity.Y, velocity.Z);
-        var newTeam = (int)team;
-        Server.NextFrame(() =>
-        {
-            var grenade = Utilities.CreateEntityByName<CFlashbangProjectile>("flashbang_projectile");
-            grenade.Teleport(position, angle, velocity);
-            grenade.InitialPosition.X = newPosition.X;
-            grenade.InitialPosition.Y = newPosition.Y;
-            grenade.InitialPosition.Z = newPosition.Z;
+        // They use the same signature
+        var grenade = CHEGrenadeProjectile_CreateFunc.Invoke(
+            position!.Handle,
+            angle!.Handle,
+            velocity!.Handle,
+            velocity.Handle,
+            IntPtr.Zero,
+            43
+        );
         
-            grenade.InitialVelocity.X = newVelocity.X;
-            grenade.InitialVelocity.Y = newVelocity.Y;
-            grenade.InitialVelocity.Z = newVelocity.Z;
+        grenade.Teleport(position, angle, velocity);
+        grenade.InitialPosition.X = position.X;
+        grenade.InitialPosition.Y = position.Y;
+        grenade.InitialPosition.Z = position.Z;
         
-            grenade.AngVelocity.X = newVelocity.X;
-            grenade.AngVelocity.Y = newVelocity.Y;
-            grenade.AngVelocity.Z = newVelocity.Z;
+        grenade.InitialVelocity.X = velocity.X;
+        grenade.InitialVelocity.Y = velocity.Y;
+        grenade.InitialVelocity.Z = velocity.Z;
+        
+        grenade.AngVelocity.X = velocity.X;
+        grenade.AngVelocity.Y = velocity.Y;
+        grenade.AngVelocity.Z = velocity.Z;
+        grenade.TeamNum = (byte)team;
             
-            grenade.TeamNum = (byte)newTeam; 
-        });
+        if (detonateImmediately)
+        {
+            grenade.DetonateTime = 0;
+        }
+            
+        grenade.TeamNum = (byte)team;     
     }
     
     public static MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, int, CSmokeGrenadeProjectile>
@@ -511,7 +519,7 @@ public partial class Dndcs2
     public static MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, CHEGrenadeProjectile>
         CHEGrenadeProjectile_CreateFunc = new(
             RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                ? "55 4C 89 C1 48 89 E5 41 57 49 89 FF 41 56 49 89 D6"
+                ? "55 4C 89 C1 48 89 E5 41 57 45 89 CF 41 56 49 89"
                 : "48 89 5C 24 08 48 89 6C 24 10 48 89 74 24 18 57 48 83 EC 40 48 8B 6C 24 70"
         );
     
@@ -594,5 +602,10 @@ public partial class Dndcs2
         var grenade = Dndcs2.SpawnMolotovGrenade(location, new QAngle(0, 0, 0), new Vector(0, 0, 0), attacker.Team);
         grenade.DetonateTime = 0;
         grenade.Thrower.Raw = attacker.PlayerPawn.Raw;        
+    }
+
+    public static void UnblindPlayer(CCSPlayerController player)
+    {
+        player.PlayerPawn.Value.BlindUntilTime = Server.CurrentTime;
     }
 }

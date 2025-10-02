@@ -29,7 +29,8 @@ public partial class Dndcs2
             new BombPlant(),
             new HostageKilled(),
             new HostageRescued(),
-            new InfernoStartburn()
+            new InfernoStartburn(),
+            new PlayerBlind(),
         };
     }
 }
