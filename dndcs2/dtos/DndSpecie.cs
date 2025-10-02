@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using static Dndcs2.constants.DndSpecieDescription;
 
 namespace Dndcs2.dtos;
 
@@ -17,15 +18,14 @@ public class DndSpecie : MetaDtoObject
     public ICollection<DndSpecieRequirement> DndSpecieRequirements { get; } = new List<DndSpecieRequirement>();
 
     public DndSpecie(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled, 
-        int dndSpecieId, string dndSpecieName, int dndSpecieLevelAdjustment, string dndSpecieDescription, 
-        Collection<DndSpecieRequirement> dndSpecieRequirements) : 
+        constants.DndSpecie specie, int dndSpecieLevelAdjustment, Collection<DndSpecieRequirement> dndSpecieRequirements) : 
         base( createdBy, createDate, updatedBy, updatedDate, enabled)
     {
-        DndSpecieId = dndSpecieId;
-        DndSpecieName = dndSpecieName;
+        DndSpecieId = (int) specie;
+        DndSpecieName = specie.ToString().Replace("_", " ");
         DndSpecieLevelAdjustment = dndSpecieLevelAdjustment;
         DndSpecieRequirements = DndSpecieRequirements.Union(dndSpecieRequirements).ToList();
-        DndSpecieDescription = dndSpecieDescription;
+        DndSpecieDescription = DndSpecieDescriptions[specie];
     }
     
     // This is for EF. Do not use

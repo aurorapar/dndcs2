@@ -2,26 +2,24 @@
 using System.Numerics;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
-using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
+using static Dndcs2.messages.DndMessages;
+using static Dndcs2.constants.DndSpecieDescription;
 using Dndcs2.constants;
 using Dndcs2.dice;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using Dndcs2.Sql;
 using Dndcs2.stats;
-using static Dndcs2.messages.DndMessages;
-using DndClass = Dndcs2.constants.DndClass;
+
+
 
 namespace Dndcs2.DndSpecies;
 
 public class Dragonborn : DndBaseSpecie
 {
-    public Dragonborn(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled, 
-        string dndSpecieName, string dndSpecieDescription, int dndSpecieLevelAdjustment, 
-        Collection<DndSpecieRequirement> dndSpecieRequirements) : 
-        base(createdBy, createDate, updatedBy, updatedDate, enabled, (int) constants.DndSpecie.Dragonborn, dndSpecieName, 
-            dndSpecieLevelAdjustment, dndSpecieDescription, dndSpecieRequirements)
+    public Dragonborn(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled) : 
+        base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndSpecie.Dragonborn, 0, 
+        new Collection<DndSpecieRequirement>())
     {        
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
             new DragonbornBreathWeapon()
@@ -75,7 +73,7 @@ public class Dragonborn : DndBaseSpecie
             if (attacker.Team == victim.Team)
                 return HookResult.Continue;
 
-            if (new DieRoll(sides: 20, amount: 1).Result >= 20 - (.10 * 20))
+            if (new DieRoll(sides: 20, amount: 1).Result >= (20 - (.10 * 20)))
             {                
                 foreach (var blastTarget in Utilities.GetPlayers())
                 {

@@ -2,7 +2,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using static Dndcs2.messages.DndMessages;
-using Dndcs2.constants;
+using PlayerStatRating = Dndcs2.stats.PlayerBaseStats.PlayerStatRating;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using Dndcs2.Sql;
@@ -12,11 +12,9 @@ namespace Dndcs2.DndClasses;
 
 public class Rogue : DndBaseClass
 {
-    public Rogue(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled, 
-        string dndClassName, string dndClassDescription, Collection<DndClassRequirement> dndClassRequirements) : 
-        base(createdBy, createDate, updatedBy, updatedDate, enabled, (int) constants.DndClass.Rogue, 
-            Enum.GetName(typeof(constants.DndClass), constants.DndClass.Rogue), 
-            dndClassDescription, PlayerStat.Dexterity, PlayerStat.Intelligence, dndClassRequirements)
+    public Rogue(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled) : 
+        base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Rogue, 
+            PlayerStat.Dexterity, PlayerStat.Intelligence, PlayerStatRating.Average, new Collection<DndClassRequirement>())
     {
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
            

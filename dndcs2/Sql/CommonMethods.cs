@@ -214,6 +214,7 @@ public static class CommonMethods
         using (var connection = CreateContext())
         {
             connection.DndClasses.Add(dndClass);    
+            connection.Entry(dndClass).State = EntityState.Added;
             SaveChanges(connection);
         }
 

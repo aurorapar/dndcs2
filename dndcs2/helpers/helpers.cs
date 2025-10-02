@@ -1,10 +1,8 @@
 ﻿using System.Collections.Immutable;
 using System.Numerics;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Memory;
@@ -24,6 +22,39 @@ namespace Dndcs2;
 
 public partial class Dndcs2
 {
+    public static IntPtr GameTraceManagerSignature = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("GameTraceManager"));
+    public static IntPtr TraceFuncSignature = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("TraceFunc"));
+    public static IntPtr TraceShapeSignature = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("TraceShape"));
+    public static IntPtr CTraceFilterVTable = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("CTraceFilterVtable"));
+    
+    public static unsafe IntPtr GameTraceManagerAddress = GameTraceManagerSignature + *(int*)(GameTraceManagerSignature + 3) + 7;
+    public static unsafe IntPtr VTable = CTraceFilterVTable + *(int*)(CTraceFilterVTable + 3) + 7;
+    
+    public static TraceShapeDelegatePointer TraceShapeDelegate = Marshal.GetDelegateForFunctionPointer<TraceShapeDelegatePointer>(TraceFuncSignature);    
+    public static TraceShapeRayFilterDelegatePointer TraceShapeRayFilter = Marshal.GetDelegateForFunctionPointer<TraceShapeRayFilterDelegatePointer>(TraceShapeSignature);     
+    
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public unsafe delegate bool TraceShapeDelegatePointer(
+        IntPtr GameTraceManager,
+        IntPtr vecStart,
+        IntPtr vecEnd,
+        IntPtr skip,
+        ulong mask,
+        ulong content,
+        CGameTrace* pGameTrace
+    );
+    
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public unsafe delegate bool TraceShapeRayFilterDelegatePointer(
+        IntPtr GameTraceManager,
+        Ray* trace,
+        IntPtr vecStart,
+        IntPtr vecEnd,
+        CTraceFilter* traceFilter,
+        CGameTrace* pGameTrace
+    );
+    
+
     public static ImmutableList<string> Pistols = ImmutableList.Create(
         "glock","hkp2000","usp_silencer","elite","p250","tec9","fiveseven","cz75a","deagle","revolver"
     );
@@ -172,26 +203,7 @@ public partial class Dndcs2
         return message;
     }
     
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private unsafe delegate bool TraceShapeDelegate(
-        IntPtr GameTraceManager,
-        IntPtr vecStart,
-        IntPtr vecEnd,
-        IntPtr skip,
-        ulong mask,
-        ulong content,
-        CGameTrace* pGameTrace
-    );
     
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private unsafe delegate bool TraceShapeRayFilterDelegate(
-        IntPtr GameTraceManager,
-        Ray* trace,
-        IntPtr vecStart,
-        IntPtr vecEnd,
-        CTraceFilter* traceFilter,
-        CGameTrace* pGameTrace
-    );
 
     public static Vector3 GetViewLocation(CCSPlayerController player, int distance = 8192, int cutShortDistance = 0)
     {
@@ -207,13 +219,7 @@ public partial class Dndcs2
         
         unsafe
         {            
-            CGameTrace* trace = stackalloc CGameTrace[1];
-            var gameTraceManager = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("GameTraceManager"));
-            int code = *(int*)(gameTraceManager + 3);            
-            IntPtr gameTraceManagerAddress = gameTraceManager + code + 7;;
-
-            IntPtr traceFunc = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("TraceFunc"));
-            var traceShape = Marshal.GetDelegateForFunctionPointer<TraceShapeDelegate>(traceFunc);
+            CGameTrace* trace = stackalloc CGameTrace[1];            
             ulong mask = (ulong) (RaytraceMasks.Solid | RaytraceMasks.Window | RaytraceMasks.Debris | RaytraceMasks.Hitbox);
             ulong targetMask = (ulong) RaytraceMasks.Sky;
             
@@ -228,7 +234,7 @@ public partial class Dndcs2
             filters.AddRange(buyzoneHandles);
             filters.AddRange(bombsiteHandles);
 
-            traceShape(*(IntPtr*)gameTraceManagerAddress, startOrigin.Handle, endOrigin.Handle, player.PlayerPawn.Value.Handle, ~0ul,
+            TraceShapeDelegate(*(IntPtr*)GameTraceManagerAddress, startOrigin.Handle, endOrigin.Handle, player.PlayerPawn.Value.Handle, ~0ul,
                     targetMask, trace);
 
             CGameTrace? possibleTraceResult = *trace;
@@ -300,14 +306,8 @@ public partial class Dndcs2
             startOrigin = new(startOrigin.X + forward.X * 40, startOrigin.Y + forward.Y * 40, startOrigin.Z + forward.Z * 40);
             Vector endOrigin = new(startOrigin.X + forward.X * 8192, startOrigin.Y + forward.Y * 8192, startOrigin.Z + forward.Z * 8192);
             
-            CGameTrace* trace = stackalloc CGameTrace[1];
-            var gameTraceManager = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("GameTraceManager"));
-            int code = *(int*)(gameTraceManager + 3);            
-            IntPtr gameTraceManagerAddress = gameTraceManager + code + 7;;
-
-            IntPtr traceFunc = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("TraceFunc"));
-            var traceShape = Marshal.GetDelegateForFunctionPointer<TraceShapeDelegate>(traceFunc);
-            traceShape(*(IntPtr*)gameTraceManagerAddress, startOrigin.Handle, endOrigin.Handle, skip, mask,targetMask, trace);
+            CGameTrace* trace = stackalloc CGameTrace[1];            
+            TraceShapeDelegate(*(IntPtr*)GameTraceManagerAddress, startOrigin.Handle, endOrigin.Handle, skip, mask,targetMask, trace);
             
             CGameTrace? possibleTraceResult = *trace;
             if (!possibleTraceResult.HasValue)
@@ -354,29 +354,16 @@ public partial class Dndcs2
             filter.m_nHierarchyIds[0] = pawn.Collision.CollisionAttribute.HierarchyId;
             filter.m_nHierarchyIds[1] = 0;            
             
-            IntPtr traceShape = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("TraceShape"));
-            var traceShapeRayFilter = Marshal.GetDelegateForFunctionPointer<TraceShapeRayFilterDelegate>(traceShape);            
+            
             
             CGameTrace* _trace = stackalloc CGameTrace[1];
-            CTraceFilter* _filter = stackalloc CTraceFilter[1];
-            
-            IntPtr cTraceFilterVTable = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("CTraceFilterVtable"));
-            if (cTraceFilterVTable == IntPtr.Zero)
-                throw new Exception("Failed to find cTraceFilterVTable signature.");
-            int filterCode = *(int*)(cTraceFilterVTable + 3);
-            IntPtr _vtable = cTraceFilterVTable + filterCode + 7;
-            
-            var gameTraceManager = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("GameTraceManager"));
-            if (gameTraceManager == IntPtr.Zero)
-                throw new Exception("Failed to find gameTraceManager signature.");
-            int code = *(int*)(gameTraceManager + 3);            
-            IntPtr gameTraceManagerAddress = gameTraceManager + code + 7;;
+            CTraceFilter* _filter = stackalloc CTraceFilter[1];            
             
             *_filter = filter;
-            _filter->Vtable = (void*)_vtable;
+            _filter->Vtable = (void*)VTable;
             
-            traceShapeRayFilter(
-                *(nint*) gameTraceManagerAddress, 
+            TraceShapeRayFilter(
+                *(nint*) GameTraceManagerAddress, 
                 &ray, 
                 origin.Handle,
                 origin.Handle, 
@@ -553,13 +540,8 @@ public partial class Dndcs2
         
         unsafe
         {            
-            CGameTrace* trace = stackalloc CGameTrace[1];
-            var gameTraceManager = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("GameTraceManager"));
-            int code = *(int*)(gameTraceManager + 3);            
-            IntPtr gameTraceManagerAddress = gameTraceManager + code + 7;;
+            CGameTrace* trace = stackalloc CGameTrace[1];            
 
-            IntPtr traceFunc = NativeAPI.FindSignature(Addresses.ServerPath, GameData.GetSignature("TraceFunc"));
-            var traceShape = Marshal.GetDelegateForFunctionPointer<TraceShapeDelegate>(traceFunc);
             ulong mask = (ulong) (RaytraceMasks.Solid | RaytraceMasks.Window | RaytraceMasks.Debris | RaytraceMasks.Hitbox | RaytraceMasks.Player | RaytraceMasks.Npc);
             ulong targetMask = (ulong) RaytraceMasks.Sky;
             
@@ -568,7 +550,7 @@ public partial class Dndcs2
             var bombsiteHandles = Utilities.FindAllEntitiesByDesignerName<CBombTarget>("func_bomb_target")
                 .Select(e => (IntPtr) e.Handle).ToList();
     
-            traceShape(*(IntPtr*)gameTraceManagerAddress, grenadeLocation.Handle, newLocation.Handle, 0, ~0ul,
+            TraceShapeDelegate(*(IntPtr*)GameTraceManagerAddress, grenadeLocation.Handle, newLocation.Handle, 0, ~0ul,
                     targetMask, trace);
 
             CGameTrace? possibleTraceResult = *trace;
@@ -586,11 +568,8 @@ public partial class Dndcs2
             {
                 BroadcastMessage(entityInstance.DesignerName);
                 if (entityInstance == null)
-                {
-                    BroadcastMessage("No raytrace successful");
                     return (Vector3)location;
-                }
-
+                
                 return new Vector3(
                     traceResult.EndPos.X, 
                     traceResult.EndPos.Y, 
@@ -600,7 +579,6 @@ public partial class Dndcs2
             }
         }        
         
-        BroadcastMessage("No raytrace successful");
         return location;
     }
 
@@ -611,35 +589,10 @@ public partial class Dndcs2
         playerStats.InfernoLocation = location;
         if (location == null)
             return;
+        playerStats.InfernoSpawnedTick = Server.TickCount;
 
         var grenade = Dndcs2.SpawnMolotovGrenade(location, new QAngle(0, 0, 0), new Vector(0, 0, 0), attacker.Team);
         grenade.DetonateTime = 0;
-        grenade.Thrower.Raw = attacker.PlayerPawn.Raw;
-
-        Server.NextFrame(() =>
-        {
-            var infernoLocations = Utilities.GetPlayers()
-                .Where(p => PlayerStats.GetPlayerStats(p).InfernoLocation != null)
-                .Select(p => PlayerStats.GetPlayerStats(p).InfernoLocation).ToList();
-
-            var infernos = Utilities.GetAllEntities()
-                .Where(e => e.DesignerName == "inferno");
-            if (!infernos.Any())
-                throw new ArgumentException("Could not find the original casting location");
-
-            foreach (var i in infernos)
-            {
-                var inferno = Utilities.GetEntityFromIndex<CInferno>((int)i.Index);
-                if (inferno == null)                
-                    continue;                
-
-                infernoLocations.ForEach(l =>
-                {
-                    if (Vector3.Distance((Vector3)inferno.AbsOrigin, (Vector3)location) > 20)
-                        return;                    
-                    inferno.Remove();
-                });
-            }
-        });
+        grenade.Thrower.Raw = attacker.PlayerPawn.Raw;        
     }
 }

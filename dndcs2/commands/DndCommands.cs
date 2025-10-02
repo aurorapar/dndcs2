@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
 using Dndcs2.commands;
+using static Dndcs2.commands.SpellsAbilities.DndAbility;
 
 namespace Dndcs2;
 
@@ -9,11 +10,13 @@ public partial class Dndcs2
 {
     private void RegisterCommands()
     {
-        var dndXp = new DndXp();
-        var dndInfo = new DndInfo();
-        var dndMenu = new DndMenu();
-        var playerinfo = new DndPlayerInfo();
-        var dndXpLog = new DndXpLog();
+        new DndXp();
+        new DndInfo();
+        new DndMenu();
+        new DndPlayerInfo();
+        new DndXpLog();
+        RegisterAbilities();
+        
         var getplayertarget = new GetPlayerTarget();
         var teleport = new Teleport();
         var flashbang = new Flashbang();
@@ -46,7 +49,14 @@ public abstract class DndCommand
         });
         
     }
-    
-    public abstract void CommandHandler(CCSPlayerController? player, CommandInfo command);
-    public abstract HookResult ChatHandler(EventPlayerChat @event, GameEventInfo info);
+
+    public virtual void CommandHandler(CCSPlayerController? player, CommandInfo command)
+    {
+        return;
+    }
+
+    public virtual HookResult ChatHandler(EventPlayerChat @event, GameEventInfo info)
+    {
+        return HookResult.Continue;
+    }
 }

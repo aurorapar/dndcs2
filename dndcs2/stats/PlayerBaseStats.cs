@@ -1,7 +1,5 @@
-﻿using System.Diagnostics;
-using CounterStrikeSharp.API;
+﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Utils;
 using Dndcs2.dice;
 using Dndcs2.Sql;
@@ -16,10 +14,10 @@ public class PlayerBaseStats
     public int MaxHealth { get; private set; } = 100;
     public int MaxMana { get; private set; } = 0;
     public int Mana { get; private set; }
-    public float Speed { get; private set; } = 1.0f;
-    public bool Guidance { get; private set; }
-    public Vector? InfernoLocation;
+    public double Speed { get; private set; } = 1.0f;
+    public int AbilityCooldown { get; set; } = 0;
     public List<string> AllowedWeapons { get; private set; } = new();
+    public Dictionary<string, int> SpellLimitedUses { get; private set; } = new();
 
     private PlayerStatRating _wisdomStat = PlayerStatRating.Low;
     private PlayerStatRating _strengthStat = PlayerStatRating.Low;
@@ -27,6 +25,11 @@ public class PlayerBaseStats
     private PlayerStatRating _constitutionStat = PlayerStatRating.Low;
     private PlayerStatRating _charismaStat = PlayerStatRating.Low;
     private PlayerStatRating _intelligenceStat = PlayerStatRating.Low;
+    
+    public bool Guidance;
+    public Vector? InfernoLocation;
+    public int InfernoSpawnedTick { get; set; }
+
 
     public PlayerBaseStats(int userid)
     {
@@ -36,14 +39,21 @@ public class PlayerBaseStats
 
     public void Reset()
     {
+        Dndcs2.Instance.Log.LogInformation($"PlayerBaseStats Reset for {Utilities.GetPlayerFromUserid(Userid).PlayerName}");
         MaxHealth = 100;
         MaxMana = 0;
-        Speed = 1.0f;
+        Mana = 0;
+        if(Speed != 1)
+            ChangeSpeed((Speed - 1) * -1);
+        
         AllowedWeapons = new List<string>();
-        InfernoLocation = null;
-        Guidance = false;
+        AbilityCooldown = 0;
+        SpellLimitedUses = new();
         foreach(var weapon in Dndcs2.Weapons.Except(Dndcs2.Snipers))
             PermitWeapon(weapon);
+        
+        InfernoLocation = null;
+        Guidance = false;
     }
 
     public void ChangeMaxHealth(int amount, float? duration = null)
@@ -85,15 +95,15 @@ public class PlayerBaseStats
 
     public void ChangeMana(int amount, float? duration = null)
     {
-        Mana += amount;
+        Mana = Math.Min(MaxMana, Mana + amount);
     }
     
-    public void ChangeSpeed(float amount, float? duration = null)
+    public void ChangeSpeed(double amount, float? duration = null)
     {
         Speed += amount;
         var player = Utilities.GetPlayerFromUserid(Userid);
         
-        Server.NextFrame(() => player.PlayerPawn.Value.VelocityModifier = Speed);
+        Server.NextFrame(() => player.PlayerPawn.Value.VelocityModifier = (float) Speed);
         if (duration.HasValue)
         {
             new GenericTimer(duration.Value, duration.Value, 1, () =>
@@ -176,7 +186,7 @@ public class PlayerBaseStats
             }
         }))(statRating, playerLevel);
         
-        return stat;
+        return stat + (Guidance ? new Random().Next(0, 3) + 1 : 0);
     }
 
     public int GetProficiencyBonus(int level)
@@ -206,6 +216,7 @@ public class PlayerBaseStats
             return true;
         }
 
+        var diceResult = diceRoll.Result;
         if (diceRoll.Result + GetPlayerStatValue(victimStat) >= diceCheckTarget)
         {
             MessagePlayer(victim, $"You succeeded a {saveType} Save DC of {diceCheckTarget}");
@@ -272,6 +283,39 @@ public class PlayerBaseStats
             default:
                 throw new ArgumentException("Needed to supply a PlayerStat");
         };
+    }
+
+    public double GetPlayerHealthPerLevel(PlayerStatRating healthRating)
+    {
+        var conhealthModifier = GetPlayerConstitutionHealthBenefit();
+        switch (healthRating)
+        {
+            case PlayerStatRating.Low:
+                return 1.5 + conhealthModifier;
+            case PlayerStatRating.Average:
+                return 2.0 + conhealthModifier;
+            case PlayerStatRating.High:
+                return 2.5 + conhealthModifier;
+            default:
+                throw new ArgumentException("Constitution had no rating");
+        }
+    }
+
+    public double GetPlayerConstitutionHealthBenefit()
+    {
+        var player = Utilities.GetPlayerFromUserid(Userid);
+        var level = CommonMethods.RetrievePlayerClassLevel(player);
+        switch (_constitutionStat)
+        {
+            case PlayerStatRating.Low:
+                return -1;
+            case PlayerStatRating.Average:
+                return 2.0;
+            case PlayerStatRating.High:
+                return 3 + int.Max(level / 4, 2);
+            default:
+                throw new ArgumentException("Constitution had no rating");
+        }
     }
     
     public enum PlayerStatRating

@@ -1,6 +1,8 @@
-﻿using CounterStrikeSharp.API;
+﻿using System.Numerics;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using Dndcs2.Sql;
+using Dndcs2.stats;
 using static Dndcs2.messages.DndMessages;
 
 namespace Dndcs2.events;
@@ -16,6 +18,19 @@ public class InfernoStartburn : DndEvent<EventInfernoStartburn>
     public override HookResult DefaultPostHookCallback(EventInfernoStartburn @event, GameEventInfo info)
     {
         var inferno = Utilities.GetEntityFromIndex<CInferno>(@event.Entityid);
+        foreach (var playerStats in Utilities.GetPlayers().Select(p => PlayerStats.GetPlayerStats(p)))
+        {
+            if (playerStats.InfernoLocation == null)
+                continue;
+            if (Server.TickCount - playerStats.InfernoSpawnedTick > 32)
+                continue;
+            if (Vector3.Distance((Vector3)inferno.AbsOrigin, (Vector3)playerStats.InfernoLocation) > 20)
+                continue;
+            inferno.Remove();
+            break;
+        }
+        
+        
         // if (inferno == null)
         // {
         //     BroadcastMessage("Couldn't find inferno");

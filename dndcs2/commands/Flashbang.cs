@@ -61,61 +61,23 @@ public class Flashbang : DndCommand
             var infernos = Utilities.GetAllEntities()
              .Where(e => e.DesignerName == "inferno");
             if (!infernos.Any())
-            {
-                BroadcastMessage("No infernos found");
                 return;
-            }
+            
             foreach (var i in infernos)
             {
 
                 var inferno = Utilities.GetEntityFromIndex<CInferno>((int)i.Index);
                 if (inferno == null)
-                {
-                     BroadcastMessage("No inferno found");
                      continue;
-                }                     
                 
                 infernoLocations.ForEach(l =>
                 {
                     if (!(Vector3.Distance((Vector3)inferno.AbsOrigin, (Vector3)location) > 1))
                         return;                
-                    BroadcastMessage("Found the inferno");
                     Server.NextFrame(() => { inferno.Remove(); });    
                 });                            
             }
-            BroadcastMessage("Done processing next frame");
         });
-
-         // var entity = Utilities.CreateEntityByName<CInferno>("inferno");
-        // if (entity == null)
-        // {
-        //     PrintMessageToConsole($"Failed to create entity!");
-        //     return;
-        // }
-        //
-        // string playerName = player.PlayerName;
-        //
-        // var pos = Dndcs2.GetViewLocation(player);
-        // pos.Z += 20;
-        // PrintMessageToConsole($"Trying to create inferno at {pos}");
-        // entity.Teleport(pos);
-        // entity.AbsOrigin.X = pos.X;
-        // entity.AbsOrigin.Y = pos.Y;
-        // entity.AbsOrigin.Z = pos.Z;
-        // entity.OriginalSpawnLocation.X = pos.X;
-        // entity.OriginalSpawnLocation.Y = pos.Y;
-        // entity.OriginalSpawnLocation.Z = pos.Z;
-        // entity.FireCount = 1;
-        // entity.InfernoType = 0;
-        // entity.MaxFlames = 16;
-        // entity.SpreadCount = 0;
-        // entity.FireSpawnOffset = 0;
-        // entity.FireEffectTickBegin = Server.TickCount;
-        // entity.FireLifetime = 2000;
-        // entity.Globalname = $"{playerName}_inferno";
-        // entity.TeamNum = player.TeamNum;
-        // entity.ActiveTimer
-        // entity.DispatchSpawn();
     }
     
 }

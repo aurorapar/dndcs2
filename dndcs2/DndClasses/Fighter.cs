@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using static Dndcs2.messages.DndMessages;
+using PlayerStatRating = Dndcs2.stats.PlayerBaseStats.PlayerStatRating;
 using Dndcs2.constants;
 using Dndcs2.dtos;
 using Dndcs2.events;
@@ -12,11 +13,9 @@ namespace Dndcs2.DndClasses;
 
 public class Fighter : DndBaseClass
 {
-    public Fighter(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled, 
-        string dndClassName, string dndClassDescription, Collection<DndClassRequirement> dndClassRequirements) : 
-        base(createdBy, createDate, updatedBy, updatedDate, enabled, (int) constants.DndClass.Fighter, 
-            Enum.GetName(typeof(constants.DndClass), constants.DndClass.Fighter), 
-            dndClassDescription, PlayerStat.Strength, PlayerStat.Constitution, dndClassRequirements)
+    public Fighter(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled) : 
+        base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Fighter, 
+            PlayerStat.Strength, PlayerStat.Constitution, PlayerStatRating.High, new Collection<DndClassRequirement>())
     {
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
             new FighterExtraPistolDamage()

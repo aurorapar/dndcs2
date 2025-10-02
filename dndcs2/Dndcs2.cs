@@ -47,10 +47,11 @@ public partial class Dndcs2 : BasePlugin
             connection.EnsureCreated();
 
         RegisterListeners(hotreload);
-        RegisterCommands();
         RegisterEventCallbacks();
+        
         DndBaseClass.RegisterClasses();
         DndBaseSpecie.RegisterSpecies();
+        RegisterCommands();
         
         Log.LogInformation("Loaded plugin");
     }

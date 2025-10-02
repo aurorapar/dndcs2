@@ -3,6 +3,7 @@ using Dndcs2.events;
 using Dndcs2.dtos;
 using Dndcs2.Sql;
 using static Dndcs2.constants.DndSpecieDescription;
+using static Dndcs2.messages.DndMessages;
 
 namespace Dndcs2.DndSpecies;
 
@@ -11,11 +12,8 @@ public abstract class DndBaseSpecie : DndSpecie
     public List<EventCallbackFeatureContainer> DndClassSpecieEvents { get; protected set; } = new();
 
     protected DndBaseSpecie(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled,
-        int dndSpecieId, string dndSpecieName, int dndSpecieLevelAdjustment, string dndSpecieDescription,
-        Collection<DndSpecieRequirement> dndSpecieRequirements) :
-        base(createdBy, createDate, updatedBy, updatedDate, enabled, dndSpecieId, dndSpecieName,
-            dndSpecieLevelAdjustment,
-            dndSpecieDescription, dndSpecieRequirements)
+        constants.DndSpecie specie, int dndSpecieLevelAdjustment, Collection<DndSpecieRequirement> dndSpecieRequirements) :
+        base(createdBy, createDate, updatedBy, updatedDate, enabled, specie, dndSpecieLevelAdjustment, dndSpecieRequirements)
     {
         Dndcs2.Instance.Log.LogInformation($"Created Specie {GetType().Name}");
     }
@@ -40,26 +38,29 @@ public abstract class DndBaseSpecie : DndSpecie
             
             if (dndSpecieRecord == null)
             {
-                DateTime creationTime = DateTime.UtcNow;
-                string author = "D&D Initial Creation";
-                bool enabled = true;
-                string dndSpecieName = Enum.GetName(dndSpecieEnumType, dndSpecieEnum).Replace('_', ' ');
-                string dndSpecieDescription = DndSpecieDescriptions[dndSpecieEnum];
-                var specieReqs = new Collection<DndSpecieRequirement>();
-                var newDndSpecie = constructor[0].Invoke(new object[]
+                try
                 {
-                    author, 
-                    creationTime, 
-                    author, 
-                    creationTime, 
-                    enabled, 
-                    dndSpecieName, 
-                    dndSpecieDescription, 
-                    0, //TODO: define level adjustment somewhere
-                    specieReqs
-                });
-                CommonMethods.CreateNewDndSpecie((DndBaseSpecie) newDndSpecie);
-                Dndcs2.Instance.DndSpecieLookup[dndSpecieEnum] = (DndBaseSpecie) newDndSpecie;
+                    DateTime creationTime = DateTime.UtcNow;
+                    string author = "D&D Initial Creation";
+                    bool enabled = true;
+                    var newDndSpecie = constructor[0].Invoke(new object[]
+                    {
+                        author,
+                        creationTime,
+                        author,
+                        creationTime,
+                        enabled
+                    });
+                    CommonMethods.CreateNewDndSpecie((DndBaseSpecie)newDndSpecie);
+                    Dndcs2.Instance.DndSpecieLookup[dndSpecieEnum] = (DndBaseSpecie)newDndSpecie;
+                    Dndcs2.Instance.Log.LogInformation($"{((DndBaseSpecie) newDndSpecie).DndSpecieName} added to database");
+                }
+                catch (Exception e)
+                {
+                    Dndcs2.Instance.Log.LogError($"Error registering specie {dndSpecieEnum}");
+                    Dndcs2.Instance.Log.LogError(e.ToString());
+                    return;
+                }
             }
             else
             {
@@ -84,13 +85,10 @@ public abstract class DndBaseSpecie : DndSpecie
                     dndSpecieRecord.CreateDate, 
                     dndSpecieRecord.UpdatedBy,
                     dndSpecieRecord.UpdatedDate,
-                    dndSpecieRecord.Enabled, 
-                    dndSpecieRecord.DndSpecieName, 
-                    dndSpecieRecord.DndSpecieDescription, 
-                    dndSpecieRecord.DndSpecieLevelAdjustment,
-                    specieReqs
+                    dndSpecieRecord.Enabled
                 });
                 Dndcs2.Instance.DndSpecieLookup[dndSpecieEnum] = (DndBaseSpecie) newDndSpecie;
+                Dndcs2.Instance.Log.LogInformation($"{((DndBaseSpecie) newDndSpecie).DndSpecieName} loaded from database");
             }
         }
     }
