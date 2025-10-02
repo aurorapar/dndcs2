@@ -65,4 +65,55 @@ public class PlayerHurt : DndEvent<EventPlayerHurt>
         
         return HookResult.Continue;
     }
+    
+    public override HookResult DefaultPostHookCallback(EventPlayerHurt @event, GameEventInfo info)
+    {
+
+        var attacker = @event.Attacker;
+        var victim = @event.Userid;
+        if (attacker == null || victim == null)            
+            return HookResult.Continue;
+
+        var dndPlayerVictim = CommonMethods.RetrievePlayer(victim);
+        var dndPlayerAttacker = CommonMethods.RetrievePlayer(attacker);
+
+        var victimClassEnum = (constants.DndClass) dndPlayerVictim.DndClassId;
+        var victimSpecieEnum = (constants.DndSpecie) dndPlayerVictim.DndSpecieId;
+        
+        var attackerClassEnum = (constants.DndClass) dndPlayerAttacker.DndClassId;
+        var attackerSpecieEnum = (constants.DndSpecie) dndPlayerAttacker.DndSpecieId;
+
+        List<EventCallbackFeatureContainer> features = new();
+        foreach(var classSpecieEventFeature in PostEventCallbacks)
+        {
+            var feature = (EventCallbackFeature<EventPlayerHurt>) classSpecieEventFeature; 
+            if(
+                (feature.DndClass == victimClassEnum
+                 || feature.DndSpecie == victimSpecieEnum
+                 || (feature.DndClass == attackerClassEnum || feature.DndSpecie == attackerSpecieEnum) && ! attacker.ControllingBot)
+                && feature.HookMode == HookMode.Post
+            )
+                features.Add(feature);
+            
+        }
+
+        features = features.OrderBy(feature =>((EventCallbackFeature<EventPlayerHurt>) feature).CallbackFeaturePriority).ToList();
+        bool overrideFlag = false;
+        foreach(var f in features)
+        {
+            var feature = (EventCallbackFeature<EventPlayerHurt>) f;
+            HookResult result = feature.Callback(@event, info, dndPlayerVictim, dndPlayerAttacker);
+            if (feature.CallbackFeaturePriority == EventCallbackFeaturePriority.Interrupts)
+                return result;
+            if (result != HookResult.Continue)
+                return result;
+            if(feature.OverrideDefaultBehavior)
+                overrideFlag = true;
+        };
+        
+        if(overrideFlag)
+            return HookResult.Continue;        
+        
+        return HookResult.Continue;
+    }
 }

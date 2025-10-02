@@ -1,5 +1,10 @@
-﻿using CounterStrikeSharp.API;
+﻿using System.Diagnostics;
+using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Utils;
+using Dndcs2.dice;
+using Dndcs2.Sql;
 using Dndcs2.timers;
 using static Dndcs2.messages.DndMessages;
 
@@ -12,7 +17,16 @@ public class PlayerBaseStats
     public int MaxMana { get; private set; } = 0;
     public int Mana { get; private set; }
     public float Speed { get; private set; } = 1.0f;
+    public bool Guidance { get; private set; }
+    public Vector? InfernoLocation;
     public List<string> AllowedWeapons { get; private set; } = new();
+
+    private PlayerStatRating _wisdomStat = PlayerStatRating.Low;
+    private PlayerStatRating _strengthStat = PlayerStatRating.Low;
+    private PlayerStatRating _dexterityStat = PlayerStatRating.Low;
+    private PlayerStatRating _constitutionStat = PlayerStatRating.Low;
+    private PlayerStatRating _charismaStat = PlayerStatRating.Low;
+    private PlayerStatRating _intelligenceStat = PlayerStatRating.Low;
 
     public PlayerBaseStats(int userid)
     {
@@ -26,6 +40,8 @@ public class PlayerBaseStats
         MaxMana = 0;
         Speed = 1.0f;
         AllowedWeapons = new List<string>();
+        InfernoLocation = null;
+        Guidance = false;
         foreach(var weapon in Dndcs2.Weapons.Except(Dndcs2.Snipers))
             PermitWeapon(weapon);
     }
@@ -77,11 +93,7 @@ public class PlayerBaseStats
         Speed += amount;
         var player = Utilities.GetPlayerFromUserid(Userid);
         
-        Server.NextFrame(() =>
-        {
-            player.PlayerPawn.Value.VelocityModifier = Speed;
-            MessagePlayer(player, $"Changed speed to {Speed}");
-        });
+        Server.NextFrame(() => player.PlayerPawn.Value.VelocityModifier = Speed);
         if (duration.HasValue)
         {
             new GenericTimer(duration.Value, duration.Value, 1, () =>
@@ -122,4 +134,160 @@ public class PlayerBaseStats
                 AllowedWeapons.Remove(weapon);
         }
     }
+
+    public int GetPlayerStatValue(PlayerStat statEnum)
+    {
+        PlayerStatRating statRating = ((Func<PlayerStat, PlayerStatRating>)((saveStat) =>
+        {
+            switch (saveStat)
+            {
+                case PlayerStat.Strength:
+                    return _strengthStat;
+                case PlayerStat.Dexterity:
+                    return _dexterityStat;
+                case PlayerStat.Constitution:
+                    return _constitutionStat;
+                case PlayerStat.Intelligence:
+                    return _intelligenceStat;
+                case PlayerStat.Wisdom:
+                    return _wisdomStat;
+                case PlayerStat.Charisma:
+                    return _charismaStat;
+                default:
+                    throw new ArgumentException("Needed to supply a PlayerStat");
+            };
+        }))(statEnum);
+
+        var player = Utilities.GetPlayerFromUserid(Userid);
+        int playerLevel = CommonMethods.RetrievePlayerClassLevel(player);
+        int proficiencyBonus = GetProficiencyBonus(playerLevel);
+        int stat = ((Func<PlayerStatRating, int, int>)((rating, level) => 
+        {
+            switch (rating)
+            {
+                case PlayerStatRating.Low:
+                    return -1;
+                case PlayerStatRating.Average:
+                    return 2 + proficiencyBonus;
+                case PlayerStatRating.High:
+                    return 3 + int.Max(level / 4, 2) + proficiencyBonus;
+                default:
+                    throw new ArgumentException("Needed to supply a PlayerStatRating");
+            }
+        }))(statRating, playerLevel);
+        
+        return stat;
+    }
+
+    public int GetProficiencyBonus(int level)
+    {
+        int playerLevel = CommonMethods.RetrievePlayerClassLevel(Utilities.GetPlayerFromUserid(Userid));
+        return (int) Math.Ceiling((double) playerLevel / 4 + 1);
+    }
+
+    public bool MakeDiceCheck(CCSPlayerController aggressor, PlayerStat aggressorStat, PlayerStat victimStat, bool advantage = false)
+    {        
+        var victim = Utilities.GetPlayerFromUserid(Userid);
+        var aggressorStats = PlayerStats.GetPlayerStats(aggressor);
+        var diceCheckTarget = 8 + aggressorStats.GetPlayerStatValue(aggressorStat);
+        string saveType = aggressorStat.ToString().Split("Save")[0];
+        var diceRoll = new DieRoll(sides:20, amount:1, advantage: advantage);
+        
+        if (diceRoll.CriticalFailure)
+        {
+            MessagePlayer(victim, $"You critically failed a {saveType} Save DC of {diceCheckTarget}!");
+            MessagePlayer(aggressor, $"Someone critically failed on your {saveType} Save DC of {diceCheckTarget}!");
+            return false;
+        }
+        if (diceRoll.Critical)
+        {
+            MessagePlayer(victim, $"You critically succeeded a {saveType} Save DC of {diceCheckTarget}!");
+            MessagePlayer(aggressor, $"Someone critically succeeded on your {saveType} Save DC of {diceCheckTarget} :(");
+            return true;
+        }
+
+        if (diceRoll.Result + GetPlayerStatValue(victimStat) >= diceCheckTarget)
+        {
+            MessagePlayer(victim, $"You succeeded a {saveType} Save DC of {diceCheckTarget}");
+            MessagePlayer(aggressor, $"Someone succeeded on your {saveType} Save DC of {diceCheckTarget}");
+            return true;
+        }
+        else
+        {
+            MessagePlayer(victim, $"You failed a {saveType} Save DC of {diceCheckTarget}");
+            MessagePlayer(aggressor, $"Someone failed your {saveType} Save DC of {diceCheckTarget}");
+            return false;
+        }
+    }
+
+    public void SetGoodStat(PlayerStat stat)
+    {
+        switch (stat)
+        {
+            case PlayerStat.Strength:
+                _strengthStat = PlayerStatRating.High;
+                return;
+            case PlayerStat.Dexterity:
+                _dexterityStat = PlayerStatRating.High;
+                return;
+            case PlayerStat.Constitution:
+                _constitutionStat = PlayerStatRating.High;
+                return;
+            case PlayerStat.Intelligence:
+                _intelligenceStat = PlayerStatRating.High;
+                return;
+            case PlayerStat.Wisdom:
+                _wisdomStat = PlayerStatRating.High;
+                return;
+            case PlayerStat.Charisma:
+                _charismaStat = PlayerStatRating.High;
+                return;
+            default:
+                throw new ArgumentException("Needed to supply a PlayerStat");
+        };
+    }
+    
+    public void SetAverageStat(PlayerStat stat)
+    {
+        switch (stat)
+        {
+            case PlayerStat.Strength:
+                _strengthStat = PlayerStatRating.Average;
+                return;
+            case PlayerStat.Dexterity:
+                _dexterityStat = PlayerStatRating.Average;
+                return;
+            case PlayerStat.Constitution:
+                _constitutionStat = PlayerStatRating.Average;
+                return;
+            case PlayerStat.Intelligence:
+                _intelligenceStat = PlayerStatRating.Average;
+                return;
+            case PlayerStat.Wisdom:
+                _wisdomStat = PlayerStatRating.Average;
+                return;
+            case PlayerStat.Charisma:
+                _charismaStat = PlayerStatRating.Average;
+                return;
+            default:
+                throw new ArgumentException("Needed to supply a PlayerStat");
+        };
+    }
+    
+    public enum PlayerStatRating
+    {
+        Low,
+        Average,
+        High
+    }
+}
+
+public enum PlayerStat
+{
+    Strength,
+    Dexterity,
+    Constitution,
+    Wisdom,
+    Charisma,
+    Intelligence
 }

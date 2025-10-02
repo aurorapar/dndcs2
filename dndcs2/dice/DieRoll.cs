@@ -26,6 +26,7 @@ public class DieRoll
 
     private void Roll()
     {
+        Result = 0;
         Random rnd = new Random();
         for (int i = 0; i < Amount; i++)
         {
@@ -71,7 +72,7 @@ public class DieRoll
                 result = Math.Max(result, result2) + Modifier;
             }
 
-            Result = result;
+            Result += result;
         }
     }
 }

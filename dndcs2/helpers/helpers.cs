@@ -16,6 +16,7 @@ using static Dndcs2.messages.DndMessages;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using Dndcs2.Sql;
+using Dndcs2.stats;
 using Dndcs2.@struct;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
@@ -374,7 +375,6 @@ public partial class Dndcs2
             *_filter = filter;
             _filter->Vtable = (void*)_vtable;
             
-            PrintMessageToConsole("made it to the call");
             traceShapeRayFilter(
                 *(nint*) gameTraceManagerAddress, 
                 &ray, 
@@ -602,5 +602,44 @@ public partial class Dndcs2
         
         BroadcastMessage("No raytrace successful");
         return location;
+    }
+
+    public static void SpawnInfernoGraphic(CCSPlayerController attacker, Vector location)
+    {
+        var playerStats = PlayerStats.GetPlayerStats(attacker);
+        location = new Vector(location.X, location.Y, location.Z);
+        playerStats.InfernoLocation = location;
+        if (location == null)
+            return;
+
+        var grenade = Dndcs2.SpawnMolotovGrenade(location, new QAngle(0, 0, 0), new Vector(0, 0, 0), attacker.Team);
+        grenade.DetonateTime = 0;
+        grenade.Thrower.Raw = attacker.PlayerPawn.Raw;
+
+        Server.NextFrame(() =>
+        {
+            var infernoLocations = Utilities.GetPlayers()
+                .Where(p => PlayerStats.GetPlayerStats(p).InfernoLocation != null)
+                .Select(p => PlayerStats.GetPlayerStats(p).InfernoLocation).ToList();
+
+            var infernos = Utilities.GetAllEntities()
+                .Where(e => e.DesignerName == "inferno");
+            if (!infernos.Any())
+                throw new ArgumentException("Could not find the original casting location");
+
+            foreach (var i in infernos)
+            {
+                var inferno = Utilities.GetEntityFromIndex<CInferno>((int)i.Index);
+                if (inferno == null)                
+                    continue;                
+
+                infernoLocations.ForEach(l =>
+                {
+                    if (Vector3.Distance((Vector3)inferno.AbsOrigin, (Vector3)location) > 20)
+                        return;                    
+                    inferno.Remove();
+                });
+            }
+        });
     }
 }

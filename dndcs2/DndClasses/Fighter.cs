@@ -16,7 +16,7 @@ public class Fighter : DndBaseClass
         string dndClassName, string dndClassDescription, Collection<DndClassRequirement> dndClassRequirements) : 
         base(createdBy, createDate, updatedBy, updatedDate, enabled, (int) constants.DndClass.Fighter, 
             Enum.GetName(typeof(constants.DndClass), constants.DndClass.Fighter), 
-            dndClassDescription, dndClassRequirements)
+            dndClassDescription, PlayerStat.Strength, PlayerStat.Constitution, dndClassRequirements)
     {
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
             new FighterExtraPistolDamage()

@@ -21,8 +21,8 @@ public partial class Dndcs2 : BasePlugin
     public static DateTime RoundTime { get; set; }
     public string DatabaseLocation { get; private set; }
     public readonly DndLog Log;
-    public Dictionary<constants.DndClass, DndClass> DndClassLookup { get; private set; } = new();
-    public Dictionary<constants.DndSpecie, DndSpecie> DndSpecieLookup { get; private set; } = new();
+    public Dictionary<constants.DndClass, DndBaseClass> DndClassLookup { get; private set; } = new();
+    public Dictionary<constants.DndSpecie, DndBaseSpecie> DndSpecieLookup { get; private set; } = new();
     public List<PlayerBaseStats> PlayerBaseStats { get; private set; } = new();
     
     private CCSGameRules? _gameRules;

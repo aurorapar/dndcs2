@@ -7,6 +7,10 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <OutDir>\\192.168.1.142\cs2ds\game\csgo\addons\counterstrikesharp\plugins\dndcs2</OutDir>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="CounterStrikeSharp.API" Version="1.0.339" />
       <PackageReference Include="CS2MenuManager" Version="1.0.40" />
@@ -17,10 +21,6 @@
       <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
       <PackageReference Include="SQLitePCLRaw.config.e_sqlite3" Version="3.0.2" />
       <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="3.0.2" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Sql\scripts\" />
     </ItemGroup>
 
 </Project>

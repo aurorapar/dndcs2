@@ -16,7 +16,7 @@ public class Rogue : DndBaseClass
         string dndClassName, string dndClassDescription, Collection<DndClassRequirement> dndClassRequirements) : 
         base(createdBy, createDate, updatedBy, updatedDate, enabled, (int) constants.DndClass.Rogue, 
             Enum.GetName(typeof(constants.DndClass), constants.DndClass.Rogue), 
-            dndClassDescription, dndClassRequirements)
+            dndClassDescription, PlayerStat.Dexterity, PlayerStat.Intelligence, dndClassRequirements)
     {
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
            

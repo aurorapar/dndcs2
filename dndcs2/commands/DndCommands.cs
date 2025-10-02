@@ -18,6 +18,7 @@ public partial class Dndcs2
         var teleport = new Teleport();
         var flashbang = new Flashbang();
         var testDamage = new TestDamage();
+        new GiveItem();
     }
 }
 

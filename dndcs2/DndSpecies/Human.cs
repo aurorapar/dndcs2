@@ -32,13 +32,12 @@ public class Human : DndBaseSpecie
         {
         }
 
-        public static HookResult PlayerDeathPost(EventPlayerDeath @event, GameEventInfo info, DndPlayer dndPlayer, DndPlayer? notUsed)
+        public static HookResult PlayerDeathPost(EventPlayerDeath @event, GameEventInfo info, DndPlayer dndPlayer, DndPlayer dndPlayerAttacker)
         {
             var attacker = @event.Attacker;
             if (attacker is null)
                 return HookResult.Continue;
             
-            var dndPlayerAttacker = CommonMethods.RetrievePlayer(attacker);
             var attackerSpecieEnum = (constants.DndSpecie) dndPlayerAttacker.DndSpecieId;
             if (attackerSpecieEnum == constants.DndSpecie.Human && @event.Attacker.Team != @event.Userid.Team)
             {

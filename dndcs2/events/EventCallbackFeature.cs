@@ -45,6 +45,7 @@ public abstract class EventCallbackFeature<T> : EventCallbackFeatureContainer
 
         BaseEvent = DetermineBaseEvent();
         AddClassSpecieFeatureEvent();        
+        Dndcs2.Instance.Log.LogInformation($"Registed EventCallbackFeature {GetType().Name}");
     }
 
     private DndEvent<T> DetermineBaseEvent()
