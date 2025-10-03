@@ -86,7 +86,7 @@ public class Fighter : DndBaseClass
                 if (fighterLevel > 10)
                 {
                     MessagePlayer(player,
-                        $"You have gained the use of snipers as a Level {fighterLevel} {constants.DndClass.Fighter}!");
+                        $"Exotic Weapon Proficiency: Adds the AWP & Auto-Snipers to your repertoire");
                     playerBaseStats.PermitWeapons(Dndcs2.Snipers.ToList());
                 }
             });            

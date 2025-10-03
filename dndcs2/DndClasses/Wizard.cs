@@ -22,6 +22,7 @@ public class Wizard : DndBaseClass
         .Except(Dndcs2.Rifles)
         .Except(Dndcs2.MGs)
         .Except(Dndcs2.Shotguns)
+        .Except(Dndcs2.SMGs)
         .Except(new List<string>() {"vest", "vesthelm"})
         .ToList();
     

@@ -34,6 +34,9 @@ public class PlayerBlind : DndEvent<EventPlayerBlind>
             
             Dndcs2.Instance.Log.LogInformation("Colorspray flashbang found");
 
+            if(Vector3.Distance((Vector3)victim.AbsOrigin, (Vector3)flashbang.AbsOrigin) > 700)
+                continue;
+            
             if ((int)victim.Team == flashbang.TeamNum)
             {
                 Dndcs2.Instance.Log.LogInformation("Should have stopped event");
