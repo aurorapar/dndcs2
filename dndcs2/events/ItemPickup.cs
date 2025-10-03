@@ -28,7 +28,6 @@ public static class ItemPickupHandler
         var playerStats = PlayerStats.GetPlayerStats(player);
         if (!playerStats.CheckWeapon(item))
         {
-            Dndcs2.Instance.Log.LogInformation($"{player.PlayerName} was prevented from picking up '{vdata.Name}' '{item}'");
             var dndPlayer = CommonMethods.RetrievePlayer(player);
             
             string item_display = item;
@@ -40,9 +39,10 @@ public static class ItemPickupHandler
                                   $"{(constants.DndClass)dndPlayer.DndClassId}/{(constants.DndSpecie)dndPlayer.DndSpecieId} weapons";
 
             var dictKey = new Tuple<string, int>(message, (int)player.UserId);
-            
+
             if (!_lastPickupMessage.ContainsKey(dictKey))
-                _lastPickupMessage[dictKey] = (int) (Server.TickCount - Server.TickInterval * 6);
+                _lastPickupMessage[dictKey] = (int)(Server.TickCount - Server.TickInterval * 6);
+
             if ((Server.TickCount - _lastPickupMessage[dictKey]) * Server.TickInterval > 5)
             {
                 MessagePlayer(player, message);

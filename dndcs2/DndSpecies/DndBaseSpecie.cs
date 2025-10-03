@@ -72,8 +72,7 @@ public abstract class DndBaseSpecie : DndSpecie
                     });
                     CommonMethods.CreateNewDndSpecie((DndBaseSpecie)newDndSpecie);
                     Dndcs2.Instance.DndSpecieLookup[dndSpecieEnum] = (DndBaseSpecie)newDndSpecie;
-                    Dndcs2.Instance.Log.LogInformation(
-                        $"{((DndBaseSpecie)newDndSpecie).DndSpecieName} added to database");
+                    Dndcs2.Instance.Log.LogInformation($"{((DndBaseSpecie)newDndSpecie).DndSpecieName} added to database");
                 }
                 catch (Exception e)
                 {
@@ -108,8 +107,7 @@ public abstract class DndBaseSpecie : DndSpecie
                     dndSpecieRecord.Enabled
                 });
                 Dndcs2.Instance.DndSpecieLookup[dndSpecieEnum] = (DndBaseSpecie)newDndSpecie;
-                Dndcs2.Instance.Log.LogInformation(
-                    $"{((DndBaseSpecie)newDndSpecie).DndSpecieName} loaded from database");
+                Dndcs2.Instance.Log.LogInformation($"{((DndBaseSpecie)newDndSpecie).DndSpecieName} loaded from database");
             }
         }
     }

@@ -77,10 +77,7 @@ public abstract class DndAbility : DndCommand
             return;
 
         if (!CheckClassSpecieRequirements(player))
-        {
-            Dndcs2.Instance.Log.LogInformation($"Player failed to meet class/specie requirements for {CommandName}");
             return;
-        }
         
         var playerStats = PlayerStats.GetPlayerStats(player);
 

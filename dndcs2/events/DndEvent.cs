@@ -60,7 +60,6 @@ public abstract class DndEvent<T> : DndEventContainer
 
     public HookResult InnerPrehookCallback(T @event, GameEventInfo info)
     {
-        Dndcs2.Instance.Log.Debug($"Event {GetType().Name} fired prehook");
         try
         {
             return DefaultPreHookCallback(@event, info);
@@ -74,7 +73,6 @@ public abstract class DndEvent<T> : DndEventContainer
     
     public HookResult InnerPosthookCallback(T @event, GameEventInfo info)
     {
-        Dndcs2.Instance.Log.Debug($"Event {GetType().Name} fired posthook");
         try
         {
             return DefaultPostHookCallback(@event, info);

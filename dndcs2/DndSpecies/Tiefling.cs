@@ -27,6 +27,7 @@ public class Tiefling : DndBaseSpecie
             base(false, EventCallbackFeaturePriority.Medium, 
                 HookMode.Post, SpawnPost, null, constants.DndSpecie.Human)
         {
+            
         }
 
         public static HookResult SpawnPost(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer, DndPlayer? dndPlayerAttacker)
