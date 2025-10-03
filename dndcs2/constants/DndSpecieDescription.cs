@@ -6,5 +6,6 @@ public static class DndSpecieDescription
     {
         { DndSpecie.Human, "An adaptable and young race, ever eager to prove themselves and mutable to any situation"},
         { DndSpecie.Dragonborn, "Born of dragons, they walk proudly through a world that greets them with fearful incomprehension."},
+        { DndSpecie.Aasimar, "Mortals who carry a spark of the Upper Planes within their souls."},
     };
 }

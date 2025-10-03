@@ -14,25 +14,38 @@ public abstract class DndAbility : DndCommand
     
     private int ManaCost = 0;
     private int? LimitedUses;
-    private double AbilityCooldown = .1;  
+    private double AbilityCooldown = .1;
+    public int? SpecieLimitedUses { get; private set; }
+    public static Dictionary<string, DndAbility> DndAbilities = new();
     
     public DndAbility(List<AbilityClassSpecieRequirement> requirements, int manaCost, int? limitedUses, double abilityCooldown, 
-        string commandName, string commandDescription) : 
+        int? specieLimitedUses, string commandName, string commandDescription) : 
         base(commandName, commandDescription)
     {
         ClassSpecieRequirements = requirements;
         ManaCost = manaCost;
         LimitedUses = limitedUses;
         AbilityCooldown = abilityCooldown;
+        SpecieLimitedUses = specieLimitedUses;
         
         Dndcs2.Instance.Log.LogInformation("Registered ability " + GetType().Name + " as " + CommandName);
     }
     
     public static void RegisterAbilities()
     {
-        new Guidance();
-        new Mana();
-        new ColorSpray();
+        var spells = new List<DndAbility>()
+        {
+            new Guidance(),
+            new Mana(),
+            new ColorSpray(),
+        };
+        foreach(var spell in spells)
+            DndAbilities[spell.CommandName] = spell;
+    }
+
+    public List<AbilityClassSpecieRequirement> GetClassSpecieRequirements()
+    {
+        return new List<AbilityClassSpecieRequirement>(ClassSpecieRequirements);
     }
     
     public sealed override void CommandHandler(CCSPlayerController? player, CommandInfo command)
@@ -67,12 +80,25 @@ public abstract class DndAbility : DndCommand
         }
         
         var playerStats = PlayerStats.GetPlayerStats(player);
-        if (playerStats.Mana < ManaCost)
+
+        bool castingWithSpecie = IsCastingWithSpecie(playerStats, player);
+        if (castingWithSpecie)
         {
-            MessagePlayer(player, "You do not have the necessary mana to cast this spell!");
-            return;
+            if (SpecieLimitedUses < 1)
+            {
+                MessagePlayer(player, $"You have no more uses of {CommandName}");
+                return;
+            }                
         }
-        
+        else
+        {
+            if (playerStats.Mana < ManaCost)
+            {
+                MessagePlayer(player, "You do not have the necessary mana to cast this spell!");
+                return;
+            }
+        }
+
         var cooldown = playerStats.AbilityCooldown;
         var currentTick = Server.TickCount;
         if ((currentTick - cooldown) * Server.TickInterval < AbilityCooldown)
@@ -91,10 +117,31 @@ public abstract class DndAbility : DndCommand
 
         if (UseAbility(player, playerStats, arguments))
         {
-            playerStats.ChangeMana(ManaCost * -1);
-            if(playerStats.SpellLimitedUses.ContainsKey(CommandName))
-                 playerStats.SpellLimitedUses[CommandName]--;            
+            if (castingWithSpecie)
+                SpecieLimitedUses--;
+            else
+            {
+                playerStats.ChangeMana(ManaCost * -1);
+                if (playerStats.SpellLimitedUses.ContainsKey(CommandName))
+                    playerStats.SpellLimitedUses[CommandName]--;
+            }
         }
+    }
+
+    public bool IsCastingWithSpecie(PlayerBaseStats playerStats, CCSPlayerController player)
+    {
+        var dndPlayer = CommonMethods.RetrievePlayer(player);
+        var classLevel = CommonMethods.RetrievePlayerClassLevel(player);
+        var reqs = ClassSpecieRequirements
+           .Where(r => 
+               // The first line is seeing if the player IS the class, but isn't high enough level to cast that class's ability yet
+               (r.DndClass == null || (r.DndClass != null && r.DndSpecie == null && (int) r.DndClass == dndPlayer.DndClassId && r.ClassLevel != null & r.ClassLevel > classLevel))  
+               || (r.DndSpecie != null && (int)r.DndSpecie == dndPlayer.DndSpecieId && (r.SpecieLevel == null || CommonMethods.RetrievePlayerSpecieLevel(player) >= r.SpecieLevel))
+           ).ToList();
+        if (reqs.Any())                
+            return true;            
+
+        return false;
     }
 
     private bool CheckClassSpecieRequirements(CCSPlayerController player)
@@ -106,32 +153,24 @@ public abstract class DndAbility : DndCommand
         {
             if (req.DndClass != null && req.DndSpecie == null)
             {
-                Dndcs2.Instance.Log.LogInformation("Checking class requirements");
-                if (req.DndClass != playerClass)
-                    if (CommonMethods.RetrievePlayerClassLevel(player) < (req.ClassLevel ?? 1))
-                        continue;
-                
-                return true;
+                if (req.DndClass == playerClass)
+                    if (CommonMethods.RetrievePlayerClassLevel(player) >= (req.ClassLevel ?? 1))
+                        return true;
             }
             
             if (req.DndSpecie != null && req.DndClass == null)
             {
-                Dndcs2.Instance.Log.LogInformation("Checking specie requirements");
-                if (req.DndSpecie != playerSpecie)
-                    if (CommonMethods.RetrievePlayerSpecieLevel(player) < (req.SpecieLevel ?? 1))
-                        continue;
-                
-                return true;
+                if (req.DndSpecie == playerSpecie)
+                    if (CommonMethods.RetrievePlayerSpecieLevel(player) >= (req.SpecieLevel ?? 1))
+                        return true;
             }
 
             if (req.DndSpecie != null && req.DndClass != null)
             {
-                if(playerClass != req.DndClass && playerSpecie != req.DndSpecie)                    
-                    if(CommonMethods.RetrievePlayerClassLevel(player) < (req.ClassLevel ?? 1))
-                        if (CommonMethods.RetrievePlayerSpecieLevel(player) < (req.SpecieLevel ?? 1))
-                            continue;
-                
-                return true;
+                if(playerClass == req.DndClass && playerSpecie == req.DndSpecie)                    
+                    if(CommonMethods.RetrievePlayerClassLevel(player) >= (req.ClassLevel ?? 1))
+                        if (CommonMethods.RetrievePlayerSpecieLevel(player) >= (req.SpecieLevel ?? 1))                
+                            return true;
             }
         }
 

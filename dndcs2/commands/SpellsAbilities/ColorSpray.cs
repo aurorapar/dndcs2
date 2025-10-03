@@ -18,6 +18,7 @@ public class ColorSpray : DndAbility
             5, 
             null, 
             .1,
+            0,
             "!colorspray", 
             "Creates a Flashbang to blind enemies (Constitution save negates)")
     {

@@ -18,6 +18,7 @@ public class Mana : DndAbility
             0, 
             null, 
             0,
+            null,
             "!mana", 
             "Allows user to get mana left")
     {

@@ -17,6 +17,7 @@ public class Guidance : DndAbility
             5, 
             null, 
             .1,
+            1,
             "!guidance", 
             "Buffs someones stats with an added 1d4 per roll")
     {

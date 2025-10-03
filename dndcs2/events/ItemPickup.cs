@@ -29,7 +29,7 @@ public static class ItemPickupHandler
         if (!playerStats.CheckWeapon(item))
         {
             var dndPlayer = CommonMethods.RetrievePlayer(player);
-            var message =  $"Your class and specie may not use a {item}! Use !weapons to see available " +
+            var message =  $"Your class and specie may not use a {item.ToUpper()}! Use !weapons to see available " +
                                   $"{(constants.DndClass)dndPlayer.DndClassId}/{(constants.DndSpecie)dndPlayer.DndSpecieId} weapons";
 
             var dictKey = new Tuple<string, int>(message, (int)player.UserId);
