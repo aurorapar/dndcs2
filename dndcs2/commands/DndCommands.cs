@@ -17,12 +17,6 @@ public partial class Dndcs2
         new DndXpLog();
         new Weapons();
         RegisterAbilities();
-        
-        var getplayertarget = new GetPlayerTarget();
-        var teleport = new Teleport();
-        var flashbang = new Flashbang();
-        var testDamage = new TestDamage();
-        new GiveItem();
     }
 }
 

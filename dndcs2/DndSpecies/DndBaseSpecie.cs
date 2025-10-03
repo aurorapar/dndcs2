@@ -147,7 +147,7 @@ public abstract class DndBaseSpecie : DndSpecie
                     if (ability.CheckClassSpecieRequirements(player) &&
                         ability.IsCastingWithSpecie(playerStats, player))
                         MessagePlayer(player,
-                            $"You have {ability.SpecieLimitedUses} uses of {ability.CommandName} as a(n) {(constants.DndSpecie)playerSpecie}");
+                            $"You have {ability.SpecieLimitedUses} uses of {ability.CommandName} as a(n) {(constants.DndSpecie)playerSpecie} ({ability.CommandDescription})");
                 }
             });
             return HookResult.Continue;
