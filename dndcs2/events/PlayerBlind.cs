@@ -52,7 +52,6 @@ public class PlayerBlind : DndEvent<EventPlayerBlind>
             return HookResult.Continue;
         }        
         
-        Dndcs2.Instance.Log.LogInformation("Colorspray flashbang NOT found");
         return HookResult.Continue;
     }
 }
