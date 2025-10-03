@@ -144,10 +144,15 @@ public abstract class DndBaseSpecie : DndSpecie
                 foreach (var spellAbilityKvp in DndAbility.DndAbilities)
                 {
                     var ability = spellAbilityKvp.Value;
-                    if (ability.CheckClassSpecieRequirements(player) &&
-                        ability.IsCastingWithSpecie(playerStats, player))
-                        MessagePlayer(player,
-                            $"You have {ability.SpecieLimitedUses} uses of {ability.CommandName} as a(n) {(constants.DndSpecie)playerSpecie} ({ability.CommandDescription})");
+                    if (!ability.CheckClassSpecieRequirements(player))
+                        continue;
+                    if(ability.IsCastingWithSpecie(playerStats, player))
+                        MessagePlayer(player,$"You have {ability.SpecieLimitedUses} uses of {ability.CommandName} as a(n) {(constants.DndSpecie)playerSpecie} ({ability.CommandDescription})");
+                    else
+                    {
+                        playerStats.ChangeMana(ability.ManaCost);
+                        MessagePlayer(player,$"You have been given {ability.ManaCost} Mana because your class already has {ability.CommandName}");
+                    }
                 }
             });
             return HookResult.Continue;
