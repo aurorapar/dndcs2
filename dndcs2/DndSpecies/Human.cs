@@ -1,9 +1,11 @@
 ﻿using System.Collections.ObjectModel;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using static Dndcs2.constants.DndSpecieDescription;
+using static Dndcs2.messages.DndMessages;
 using Dndcs2.constants;
 using Dndcs2.dtos;
 using Dndcs2.events;
+using Dndcs2.Sql;
 
 namespace Dndcs2.DndSpecies;
 
@@ -14,7 +16,8 @@ public class Human : DndBaseSpecie
             new Collection<DndSpecieRequirement>())
     {        
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
-            new HumanPostPlayerDeathEventCallbackFeature()
+            new HumanPostPlayerDeathEventCallbackFeature(),
+            new HumanSpawn()
         });
         
     }
@@ -40,6 +43,32 @@ public class Human : DndBaseSpecie
                 DndEvent<EventPlayerDeath>.GrantPlayerExperience(dndPlayerAttacker, Dndcs2.HumanXP.Value, 
                     Dndcs2.HumanXP.Description, nameof(HumanPostPlayerDeathEventCallbackFeature));
             }
+            return HookResult.Continue;
+        }
+    }
+    
+    public class HumanSpawn : EventCallbackFeature<EventPlayerSpawn>
+    {
+        public HumanSpawn() : 
+            base(false, EventCallbackFeaturePriority.Medium, 
+                HookMode.Post, SpawnPost, null, constants.DndSpecie.Human)
+        {
+        }
+
+        public static HookResult SpawnPost(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer, DndPlayer? dndPlayerAttacker)
+        {
+            var userid = (int)@event.Userid.UserId;
+            Server.NextFrame(() =>
+            {
+                var player = Utilities.GetPlayerFromUserid(userid);
+                if (player == null)
+                    return;
+                var dndPlayer = CommonMethods.RetrievePlayer(player);
+                if ((constants.DndSpecie)dndPlayer.DndSpecieId != constants.DndSpecie.Human)
+                    return;                
+                
+                MessagePlayer(player, $"Determined: You earn extra Kill XP as an {(constants.DndSpecie) dndPlayer.DndSpecieId}");
+            });
             return HookResult.Continue;
         }
     }

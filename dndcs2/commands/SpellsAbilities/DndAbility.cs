@@ -12,8 +12,8 @@ public abstract class DndAbility : DndCommand
 {
     private List<AbilityClassSpecieRequirement> ClassSpecieRequirements = new();
     
-    private int ManaCost = 0;
-    private int? LimitedUses;
+    public int ManaCost { get; } = 0;
+    public int? LimitedUses { get; } = null;
     private double AbilityCooldown = .1;
     public int? SpecieLimitedUses { get; private set; }
     public static Dictionary<string, DndAbility> DndAbilities = new();
@@ -35,9 +35,12 @@ public abstract class DndAbility : DndCommand
     {
         var spells = new List<DndAbility>()
         {
-            new Guidance(),
             new Mana(),
+            new Spells(),
+            new Abilities(),
+            new Guidance(),
             new ColorSpray(),
+            new Bane()
         };
         foreach(var spell in spells)
             DndAbilities[spell.CommandName] = spell;
@@ -84,11 +87,13 @@ public abstract class DndAbility : DndCommand
         bool castingWithSpecie = IsCastingWithSpecie(playerStats, player);
         if (castingWithSpecie)
         {
-            if (SpecieLimitedUses < 1)
+            if(!playerStats.SpecieLimitedUses.ContainsKey(CommandName))
+                playerStats.SpecieLimitedUses.Add(CommandName, (int) SpecieLimitedUses);
+            if (playerStats.SpecieLimitedUses[CommandName] <= 0)
             {
-                MessagePlayer(player, $"You have no more uses of {CommandName}");
+                MessagePlayer(player, $"You have run out of uses for {CommandName}!");
                 return;
-            }                
+            }              
         }
         else
         {
@@ -111,14 +116,17 @@ public abstract class DndAbility : DndCommand
         {
             if(!playerStats.SpellLimitedUses.ContainsKey(CommandName))
                 playerStats.SpellLimitedUses.Add(CommandName, (int) LimitedUses);
-            if(playerStats.SpellLimitedUses[CommandName] <= 0)
-                MessagePlayer(player, "You have run out of uses for this spell!");
+            if (playerStats.SpellLimitedUses[CommandName] <= 0)
+            {
+                MessagePlayer(player, $"You have run out of uses for {CommandName}!");
+                return;
+            }
         }
 
         if (UseAbility(player, playerStats, arguments))
         {
-            if (castingWithSpecie)
-                SpecieLimitedUses--;
+            if (castingWithSpecie)            
+                playerStats.SpecieLimitedUses[CommandName]--;            
             else
             {
                 playerStats.ChangeMana(ManaCost * -1);
@@ -132,19 +140,28 @@ public abstract class DndAbility : DndCommand
     {
         var dndPlayer = CommonMethods.RetrievePlayer(player);
         var classLevel = CommonMethods.RetrievePlayerClassLevel(player);
-        var reqs = ClassSpecieRequirements
-           .Where(r => 
-               // The first line is seeing if the player IS the class, but isn't high enough level to cast that class's ability yet
-               (r.DndClass == null || (r.DndClass != null && r.DndSpecie == null && (int) r.DndClass == dndPlayer.DndClassId && r.ClassLevel != null & r.ClassLevel > classLevel))  
-               || (r.DndSpecie != null && (int)r.DndSpecie == dndPlayer.DndSpecieId && (r.SpecieLevel == null || CommonMethods.RetrievePlayerSpecieLevel(player) >= r.SpecieLevel))
-           ).ToList();
-        if (reqs.Any())                
-            return true;            
+        var specieLevel = CommonMethods.RetrievePlayerSpecieLevel(player);
+        var meetsClassRequirements = ClassSpecieRequirements.Where(r => r.DndClass != null && dndPlayer.DndClassId == (int) r.DndClass && r.DndSpecie == null && (r.ClassLevel == null || r.ClassLevel <= classLevel)).ToList();
+        meetsClassRequirements.AddRange(
+            ClassSpecieRequirements.Where(r => 
+                        r.DndClass != null & r.DndSpecie != null 
+                        && (int) r.DndClass == dndPlayer.DndClassId 
+                        && (int) r.DndSpecie == dndPlayer.DndSpecieId
+                        && (r.ClassLevel == null || r.ClassLevel <= classLevel)
+                        && (r.SpecieLevel == null || r.SpecieLevel <= specieLevel)) 
+        );
+        var meetsSpecieRequirements = ClassSpecieRequirements.Where(r => r.DndSpecie != null && r.DndClass == null && (r.SpecieLevel == null || r.SpecieLevel <= specieLevel)).ToList();       
+        
+        //Dndcs2.Instance.Log.LogInformation($"Class reqs? {meetsSpecieRequirements.Any()}");
+        //Dndcs2.Instance.Log.LogInformation($"Specie reqs? {meetsClassRequirements.Any()}");
+        
+        if (!meetsClassRequirements.Any() && meetsSpecieRequirements.Any())
+            return true;
 
         return false;
     }
 
-    private bool CheckClassSpecieRequirements(CCSPlayerController player)
+    public bool CheckClassSpecieRequirements(CCSPlayerController player)
     {
         var dndPlayer = CommonMethods.RetrievePlayer(player);
         var playerClass = (constants.DndClass)dndPlayer.DndClassId;

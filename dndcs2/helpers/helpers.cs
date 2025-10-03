@@ -55,7 +55,7 @@ public partial class Dndcs2
     );
 
     public static ImmutableList<string> Equipment = ImmutableList.Create(
-        "vest", "vesthelm", "defuser", "c4", "knife", "bayonet", "knife_t", "knife_ct"
+        "vest", "vesthelm", "defuser", "weapon_c4", "item_c4", "c4", "knife", "bayonet", "knife_t", "knife_ct", "item_kevlar"
     );
     public static ImmutableList<string> Pistols = ImmutableList.Create(
         "glock","hkp2000","usp_silencer","elite","p250","tec9","fiveseven","cz75a","deagle","revolver"

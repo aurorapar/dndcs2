@@ -23,13 +23,20 @@ public static class ItemPickupHandler
         CCSWeaponBaseVData vdata = VirtualFunctions.GetCSWeaponDataFromKeyFunc
                                        .Invoke(-1, hook.GetParam<CEconItemView>(1).ItemDefinitionIndex.ToString())
                                    ?? throw new Exception("Failed to retrieve CCSWeaponBaseVData from ItemDefinitionIndex.");
-
+        
         var item = vdata.Name.Replace("weapon_", "");
         var playerStats = PlayerStats.GetPlayerStats(player);
         if (!playerStats.CheckWeapon(item))
         {
+            Dndcs2.Instance.Log.LogInformation($"{player.PlayerName} was prevented from picking up '{vdata.Name}' '{item}'");
             var dndPlayer = CommonMethods.RetrievePlayer(player);
-            var message =  $"Your class and specie may not use a {item.ToUpper()}! Use !weapons to see available " +
+            
+            string item_display = item;
+            if (item_display.StartsWith("knife_"))
+                item_display = "knife";
+            item_display = item_display.Replace("item_", "").Replace("weapon_", "");
+            
+            var message =  $"Your class and specie may not use a {item_display}! Use !weapons to see available " +
                                   $"{(constants.DndClass)dndPlayer.DndClassId}/{(constants.DndSpecie)dndPlayer.DndSpecieId} weapons";
 
             var dictKey = new Tuple<string, int>(message, (int)player.UserId);

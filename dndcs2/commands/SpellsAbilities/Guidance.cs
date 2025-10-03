@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API.Core;
 using static Dndcs2.messages.DndMessages;
-using Dndcs2.dtos;
 using Dndcs2.stats;
 
 namespace Dndcs2.commands.SpellsAbilities;
@@ -41,9 +40,16 @@ public class Guidance : DndAbility
         }
 
         targetStats.Guidance = true;
-        MessagePlayer(player, $"You have blessed {target.PlayerName} with Guidance");
-        MessagePlayer(player, $"{player.PlayerName} blessed you with Guidance");
-        
+        if (player != target)
+        {
+            MessagePlayer(player, $"You have blessed {target.PlayerName} with Guidance");
+            MessagePlayer(target, $"{player.PlayerName} blessed you with Guidance");
+        }
+        else
+        {
+            MessagePlayer(player, $"You have been blessed with Guidance");
+        }
+
         return true;
     }
 }

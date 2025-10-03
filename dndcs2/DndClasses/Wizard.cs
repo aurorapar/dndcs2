@@ -1,9 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using static Dndcs2.messages.DndMessages;
+using Dndcs2.constants;
+using static Dndcs2.DndClasses.SharedClassFeatures;
 using PlayerStatRating = Dndcs2.stats.PlayerBaseStats.PlayerStatRating;
 using Dndcs2.dtos;
+using Dndcs2.events;
 using Dndcs2.Sql;
 using Dndcs2.stats;
 
@@ -11,18 +13,42 @@ namespace Dndcs2.DndClasses;
 
 public class Wizard : DndBaseClass
 {
+    public override PlayerStat GoodStat { get; } = PlayerStat.Intelligence;
+    public override PlayerStat AverageStat { get; } = PlayerStat.Wisdom;
+    public override PlayerStatRating HealthRating { get; }= PlayerStatRating.Low;
+
+    public override List<string> WeaponList { get; } = Dndcs2.Weapons
+        .Except(Dndcs2.Snipers)
+        .Except(Dndcs2.Rifles)
+        .Except(Dndcs2.MGs)
+        .Except(Dndcs2.Shotguns)
+        .Except(new List<string>() {"vest", "vesthelm"})
+        .ToList();
+    
     public Wizard(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled) :
-        base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Wizard,
-            PlayerStat.Intelligence, PlayerStat.Wisdom, PlayerStatRating.Low, new Collection<DndClassRequirement>())
+        base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Wizard,new Collection<DndClassRequirement>())
     {
-        Dndcs2.Instance.RegisterEventHandler<EventPlayerSpawn>((@event, info) =>
+        
+        DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
+            new WizardSpawn()
+        });
+    }    
+    
+    public class WizardSpawn : EventCallbackFeature<EventPlayerSpawn>
+    {
+        public WizardSpawn() : 
+            base(false, EventCallbackFeaturePriority.Medium, HookMode.Post, PlayerPostSpawn, 
+                constants.DndClass.Wizard, null)
         {
-            if (@event.Userid == null || @event.Userid.ControllingBot)
-                return HookResult.Continue;
             
+        }
+
+        public static HookResult PlayerPostSpawn(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer,
+            DndPlayer? dndPlayerAttacker)
+        {
             var userid = (int) @event.Userid.UserId;
             Server.NextFrame(() =>
-            {                
+            {
                 var player = Utilities.GetPlayerFromUserid(userid);
                 if (player == null)
                     return;
@@ -32,22 +58,10 @@ public class Wizard : DndBaseClass
 
                 var playerStats = PlayerStats.GetPlayerStats(dndPlayer);
                 var wizardLevel = CommonMethods.RetrievePlayerClassLevel(player);
-
-                int mana = (wizardLevel + 1) / 2 * 5 + 10;
-                mana += wizardLevel / 2 * 10;
-                playerStats.ChangeMana(mana);
-                playerStats.ChangeMaxMana(mana);
                 
-                playerStats.PermitWeapons(Dndcs2.Pistols.ToList());
-                playerStats.RestrictWeapon("vest");
-                playerStats.RestrictWeapon("vesthelm");
-                
-                MessagePlayer(player,
-                    $"You have {playerStats.Mana} mana for being a Level {wizardLevel} {constants.DndClass.Wizard}");
-                
-
-            });
+                AddFullCasterMana(wizardLevel, playerStats, dndPlayer);  
+            });            
             return HookResult.Continue;
-        }, HookMode.Post);
-    }    
+        }
+    }
 }

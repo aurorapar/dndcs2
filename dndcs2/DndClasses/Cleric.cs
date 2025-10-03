@@ -1,9 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using static Dndcs2.messages.DndMessages;
+using Dndcs2.constants;
+using static Dndcs2.DndClasses.SharedClassFeatures;
 using PlayerStatRating = Dndcs2.stats.PlayerBaseStats.PlayerStatRating;
 using Dndcs2.dtos;
+using Dndcs2.events;
 using Dndcs2.Sql;
 using Dndcs2.stats;
 
@@ -11,18 +13,40 @@ namespace Dndcs2.DndClasses;
 
 public class Cleric : DndBaseClass
 {
+    public override PlayerStat GoodStat { get; } = PlayerStat.Wisdom;
+    public override PlayerStat AverageStat { get; } = PlayerStat.Charisma;
+    public override PlayerStatRating HealthRating { get; }= PlayerStatRating.Average;
+
+    public override List<string> WeaponList { get; } = Dndcs2.Weapons
+        .Except(Dndcs2.Snipers)
+        .Except(Dndcs2.Rifles)
+        .Except(Dndcs2.MGs)
+        .Concat(new List<string>(){"galilar", "famas"})
+        .ToList();
+    
     public Cleric(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled) :
-        base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Cleric,
-            PlayerStat.Wisdom, PlayerStat.Charisma, PlayerStatRating.Average, new Collection<DndClassRequirement>())
+        base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Cleric,new Collection<DndClassRequirement>())
     {
-        Dndcs2.Instance.RegisterEventHandler<EventPlayerSpawn>((@event, info) =>
+        DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
+            new ClericSpawn()
+        });
+    }
+    
+    public class ClericSpawn : EventCallbackFeature<EventPlayerSpawn>
+    {
+        public ClericSpawn() : 
+            base(false, EventCallbackFeaturePriority.Medium, HookMode.Post, PlayerPostSpawn, 
+                constants.DndClass.Cleric, null)
         {
-            if (@event.Userid == null || @event.Userid.ControllingBot)
-                return HookResult.Continue;
             
+        }
+
+        public static HookResult PlayerPostSpawn(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer,
+            DndPlayer? dndPlayerAttacker)
+        {
             var userid = (int) @event.Userid.UserId;
             Server.NextFrame(() =>
-            {                
+            {
                 var player = Utilities.GetPlayerFromUserid(userid);
                 if (player == null)
                     return;
@@ -33,26 +57,9 @@ public class Cleric : DndBaseClass
                 var playerStats = PlayerStats.GetPlayerStats(dndPlayer);
                 var clericLevel = CommonMethods.RetrievePlayerClassLevel(player);
 
-                int mana = (clericLevel + 1) / 2 * 5 + 10;
-                mana += clericLevel / 2 * 10;
-                playerStats.ChangeMana(mana);
-                playerStats.ChangeMaxMana(mana);
-                
-                MessagePlayer(player,
-                    $"You have {playerStats.Mana} mana for being a Level {clericLevel} {constants.DndClass.Cleric}");
-                
-                playerStats.PermitWeapons(
-                    Dndcs2.Weapons
-                        .Except(Dndcs2.Snipers)
-                        .Except(Dndcs2.Rifles)
-                        .Except(Dndcs2.MGs)
-                        .ToList()
-                );
-                playerStats.PermitWeapon("galilar");
-                playerStats.PermitWeapon("famas");
-
-            });
+                AddFullCasterMana(clericLevel, playerStats, dndPlayer);  
+            });            
             return HookResult.Continue;
-        }, HookMode.Post);
-    }    
+        }
+    }
 }

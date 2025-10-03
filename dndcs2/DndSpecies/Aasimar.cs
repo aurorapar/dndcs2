@@ -1,9 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using Dndcs2.constants;
 using Dndcs2.dtos;
 using Dndcs2.events;
 using Dndcs2.Sql;
+using Dndcs2.stats;
 using static Dndcs2.messages.DndMessages;
 
 namespace Dndcs2.DndSpecies;
@@ -16,14 +18,22 @@ public class Aasimar : DndBaseSpecie
     {
         DndClassSpecieEvents.AddRange(new List<EventCallbackFeatureContainer>()
         {
-            
+            new AasimarSpawn()
         });
-
-        Dndcs2.Instance.RegisterEventHandler<EventPlayerSpawn>((@event, info) =>
+    }
+    
+    public class AasimarSpawn : EventCallbackFeature<EventPlayerSpawn>
+    {
+        public AasimarSpawn() : 
+            base(false, EventCallbackFeaturePriority.Medium, HookMode.Post, PlayerPostSpawn, 
+                null, constants.DndSpecie.Aasimar)
         {
-            if (@event.Userid == null || @event.Userid.ControllingBot)
-                return HookResult.Continue;
+            
+        }
 
+        public static HookResult PlayerPostSpawn(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer,
+            DndPlayer? dndPlayerAttacker)
+        {
             var userid = (int)@event.Userid.UserId;
             Server.NextFrame(() =>
             {
@@ -36,11 +46,8 @@ public class Aasimar : DndBaseSpecie
                 
                 if(dndPlayer.DndClassId != (int) constants.DndClass.Cleric)
                     MessagePlayer(player, $"Blessed: You may use !guidance as an {constants.DndSpecie.Aasimar}");
-
-
             });
             return HookResult.Continue;
-        }, HookMode.Post);
-
+        }
     }
 }

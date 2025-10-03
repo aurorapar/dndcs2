@@ -13,44 +13,26 @@ namespace Dndcs2.DndClasses;
 
 public class Fighter : DndBaseClass
 {
+    public override PlayerStat GoodStat { get; } = PlayerStat.Strength;
+    public override PlayerStat AverageStat { get; } = PlayerStat.Constitution;
+    public override PlayerStatRating HealthRating { get; } = PlayerStatRating.High;
+
+    public override List<string> WeaponList { get; } = Dndcs2.Weapons
+        .Except(Dndcs2.Snipers)
+        .ToList();
+    
     public Fighter(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled) : 
-        base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Fighter, 
-            PlayerStat.Strength, PlayerStat.Constitution, PlayerStatRating.High, new Collection<DndClassRequirement>())
+        base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Fighter,new Collection<DndClassRequirement>())
     {
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
-            new FighterExtraPistolDamage()
+            new ExtraPistolDamage(),
+            new AddSnipers(),
         });
-        
-        Dndcs2.Instance.RegisterEventHandler<EventPlayerSpawn>((@event, info) =>
-        {
-            if (@event.Userid == null || @event.Userid.ControllingBot)
-                return HookResult.Continue;
-            
-            var userid = (int) @event.Userid.UserId;
-            Server.NextFrame(() =>
-            {                
-                var player = Utilities.GetPlayerFromUserid(userid);
-                if (player == null)
-                    return;
-                var dndPlayer = CommonMethods.RetrievePlayer(player);
-                if ((constants.DndClass)dndPlayer.DndClassId != constants.DndClass.Fighter)
-                    return;
-
-                var playerStats = PlayerStats.GetPlayerStats(dndPlayer);
-                var fighterLevel = CommonMethods.RetrievePlayerClassLevel(player);
-                if(fighterLevel >= 11)
-                    playerStats.PermitWeapons(Dndcs2.Weapons.ToList());
-                else 
-                    playerStats.PermitWeapons(Dndcs2.Weapons.Except(Dndcs2.Snipers).ToList());
-
-            });
-            return HookResult.Continue;
-        }, HookMode.Post);
     }
     
-    public class FighterExtraPistolDamage : EventCallbackFeature<EventPlayerHurt>
+    public class ExtraPistolDamage : EventCallbackFeature<EventPlayerHurt>
     {
-        public FighterExtraPistolDamage() : 
+        public ExtraPistolDamage() : 
             base(false, EventCallbackFeaturePriority.Medium, HookMode.Pre, PlayerHurtPre, 
                 constants.DndClass.Fighter, null)
         {
@@ -82,9 +64,9 @@ public class Fighter : DndBaseClass
         }
     }
     
-    public class FighterExtraHealth : EventCallbackFeature<EventPlayerSpawn>
+    public class AddSnipers : EventCallbackFeature<EventPlayerSpawn>
     {
-        public FighterExtraHealth() : 
+        public AddSnipers() : 
             base(false, EventCallbackFeaturePriority.Medium, HookMode.Post, PlayerPostSpawn, 
                 constants.DndClass.Fighter, null)
         {
@@ -93,12 +75,7 @@ public class Fighter : DndBaseClass
 
         public static HookResult PlayerPostSpawn(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer,
             DndPlayer? dndPlayerAttacker)
-        {
-            if (@event.Userid == null || @event.Userid.UserId == null)
-                return HookResult.Continue;
-            if ((constants.DndClass)dndPlayer.DndClassId != constants.DndClass.Fighter)
-                return HookResult.Continue;
-            
+        {            
             var userid = (int) @event.Userid.UserId;
             Server.NextFrame(() =>
             {
@@ -106,8 +83,12 @@ public class Fighter : DndBaseClass
                 dndPlayer = CommonMethods.RetrievePlayer(player);
                 var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
                 var fighterLevel = CommonMethods.RetrievePlayerClassLevel(player);
-                MessagePlayer(player, $"You gained {5 * fighterLevel} bonus health for being a Level {fighterLevel} {constants.DndClass.Fighter}");
-                playerBaseStats.ChangeMaxHealth(5 * fighterLevel);
+                if (fighterLevel > 10)
+                {
+                    MessagePlayer(player,
+                        $"You have gained the use of snipers as a Level {fighterLevel} {constants.DndClass.Fighter}!");
+                    playerBaseStats.PermitWeapons(Dndcs2.Snipers.ToList());
+                }
             });            
             return HookResult.Continue;
         }

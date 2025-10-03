@@ -11,6 +11,7 @@ namespace Dndcs2.stats;
 public class PlayerBaseStats
 {
     public int Userid {get; private set;}
+    public int SpawnedOnConnect = 0;
     public int MaxHealth { get; private set; } = 100;
     public int MaxMana { get; private set; } = 0;
     public int Mana { get; private set; }
@@ -18,6 +19,7 @@ public class PlayerBaseStats
     public int AbilityCooldown { get; set; } = 0;
     public List<string> AllowedWeapons = new();
     public Dictionary<string, int> SpellLimitedUses { get; private set; } = new();
+    public Dictionary<string, int> SpecieLimitedUses { get; private set; } = new();
 
     private PlayerStatRating _wisdomStat = PlayerStatRating.Low;
     private PlayerStatRating _strengthStat = PlayerStatRating.Low;
@@ -27,6 +29,7 @@ public class PlayerBaseStats
     private PlayerStatRating _intelligenceStat = PlayerStatRating.Low;
     
     public bool Guidance;
+    public bool Bane;
     public Vector? InfernoLocation;
     public int InfernoSpawnedTick { get; set; }
     public Vector? FlashbangLocation;
@@ -41,7 +44,7 @@ public class PlayerBaseStats
 
     public void Reset()
     {
-        Dndcs2.Instance.Log.LogInformation($"PlayerBaseStats Reset for {Utilities.GetPlayerFromUserid(Userid).PlayerName}");
+        //Dndcs2.Instance.Log.LogInformation($"PlayerBaseStats Reset for {Utilities.GetPlayerFromUserid(Userid).PlayerName}");
         MaxHealth = 100;
         MaxMana = 0;
         Mana = 0;
@@ -51,9 +54,11 @@ public class PlayerBaseStats
         AllowedWeapons = new List<string>();
         AbilityCooldown = 0;
         SpellLimitedUses = new();
+        SpecieLimitedUses = new();
         
         InfernoLocation = null;
         Guidance = false;
+        Bane = false;
     }
 
     public void ChangeMaxHealth(int amount, float? duration = null)
@@ -81,14 +86,14 @@ public class PlayerBaseStats
     public void ChangeMaxMana(int amount, float? duration = null)
     {
         MaxMana += amount;
-        Mana += amount;
+        ChangeMana(amount, duration);
 
         if (duration.HasValue)
         {
             new GenericTimer(duration.Value, duration.Value, 1, () =>
             {
                 MaxMana -= amount;
-                Mana -= amount;
+                ChangeMana(amount * -1);
             });
         }
     }
@@ -96,6 +101,13 @@ public class PlayerBaseStats
     public void ChangeMana(int amount, float? duration = null)
     {
         Mana = Math.Min(MaxMana, Mana + amount);
+        if (duration.HasValue)
+        {
+            new GenericTimer(duration.Value, duration.Value, 1, () =>
+            {
+                ChangeMana(amount * -1);
+            });
+        }
     }
     
     public void ChangeSpeed(double amount, float? duration = null)
@@ -115,27 +127,27 @@ public class PlayerBaseStats
 
     public bool CheckWeapon(string weapon)
     {
-        return AllowedWeapons.Contains(weapon);
+        return AllowedWeapons.Contains(weapon.ToLower());
     }
 
     public void PermitWeapon(string weapon, float? duration = null)
     {
-        if(!AllowedWeapons.Contains(weapon))
-            AllowedWeapons.Add(weapon);
+        if(!AllowedWeapons.Contains(weapon.ToLower()))
+            AllowedWeapons.Add(weapon.ToLower());
     }
     
     public void RestrictWeapon(string weapon, float? duration = null)
     {
-        if(AllowedWeapons.Contains(weapon))
-            AllowedWeapons.Remove(weapon);
+        if(AllowedWeapons.Contains(weapon.ToLower()))
+            AllowedWeapons.Remove(weapon.ToLower());
     }
     
     public void PermitWeapons(List<string> weapons, float? duration = null)
     {
         foreach (var weapon in weapons)
         {
-            if (!AllowedWeapons.Contains(weapon))
-                AllowedWeapons.Add(weapon);
+            if (!AllowedWeapons.Contains(weapon.ToLower()))
+                AllowedWeapons.Add(weapon.ToLower());
         }
     }
     
@@ -143,14 +155,14 @@ public class PlayerBaseStats
     {
         foreach (var weapon in weapons)
         {
-            if (AllowedWeapons.Contains(weapon))
-                AllowedWeapons.Remove(weapon);
+            if (AllowedWeapons.Contains(weapon.ToLower()))
+                AllowedWeapons.Remove(weapon.ToLower());
         }
     }
 
     public List<string> GetAllowedWeapons()
     {
-        return AllowedWeapons.ToList();
+        return AllowedWeapons.Select(w => w.ToUpper()).ToList();
     }
 
     public int GetPlayerStatValue(PlayerStat statEnum)
@@ -194,7 +206,7 @@ public class PlayerBaseStats
             }
         }))(statRating, playerLevel);
         
-        return stat + (Guidance ? new Random().Next(0, 3) + 1 : 0);
+        return stat + (Guidance ? new Random().Next(0, 3) + 1 : 0) - (Bane ? new Random().Next(0, 3) + 1 : 0);
     }
 
     public int GetProficiencyBonus(int level)

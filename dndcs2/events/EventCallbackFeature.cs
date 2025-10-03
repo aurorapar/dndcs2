@@ -3,6 +3,8 @@ using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.constants;
+using Dndcs2.DndClasses;
+using Dndcs2.DndSpecies;
 using Dndcs2.dtos;
 using DndClass = Dndcs2.constants.DndClass;
 using DndSpecie = Dndcs2.constants.DndSpecie;
@@ -21,8 +23,8 @@ public abstract class EventCallbackFeature<T> : EventCallbackFeatureContainer
     public DndSpecie? DndSpecie { get; private set; }
     private static List<string> AllowedNullEvents = new List<string>()
     {
-        "PlayerBaseStatResetter",
-        "BaseStats"
+        nameof(DndBaseClass.AllClassesSpawn),
+        nameof(DndBaseSpecie.AllSpeciesSpawn),        
     };
 
     public EventCallbackFeature(bool overrideDefaultBehavior, EventCallbackFeaturePriority callbackFeaturePriority,

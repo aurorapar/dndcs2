@@ -2,61 +2,35 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using Dndcs2.commands.SpellsAbilities;
+using Dndcs2.constants;
 using Dndcs2.events;
 using Dndcs2.dtos;
 using Dndcs2.Sql;
 using Dndcs2.stats;
-using static Dndcs2.constants.DndSpecieDescription;
 using static Dndcs2.messages.DndMessages;
+using DndSpecie = Dndcs2.dtos.DndSpecie;
 
 namespace Dndcs2.DndSpecies;
 
 public abstract class DndBaseSpecie : DndSpecie
 {
     public List<EventCallbackFeatureContainer> DndClassSpecieEvents { get; protected set; } = new();
-    private static bool _registerSpecieSpawn = false;
+    private static bool _spawnEventRegistered = false;
 
     protected DndBaseSpecie(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled,
-        constants.DndSpecie specie, int dndSpecieLevelAdjustment, Collection<DndSpecieRequirement> dndSpecieRequirements) :
-        base(createdBy, createDate, updatedBy, updatedDate, enabled, specie, dndSpecieLevelAdjustment, dndSpecieRequirements)
+        constants.DndSpecie specie, int dndSpecieLevelAdjustment,
+        Collection<DndSpecieRequirement> dndSpecieRequirements) :
+        base(createdBy, createDate, updatedBy, updatedDate, enabled, specie, dndSpecieLevelAdjustment,
+            dndSpecieRequirements)
     {
         Dndcs2.Instance.Log.LogInformation($"Created Specie {GetType().Name}");
-        
-        if (!_registerSpecieSpawn)
+
+        if (!_spawnEventRegistered)
         {
-            Dndcs2.Instance.Log.LogInformation($"Registering universal specie spawn posthook");
-            _registerSpecieSpawn = true;
-            Dndcs2.Instance.RegisterEventHandler<EventPlayerSpawn>((@event, info) =>
+            _spawnEventRegistered = true;
+            DndClassSpecieEvents.AddRange(new List<EventCallbackFeatureContainer>()
             {
-                if (@event.Userid == null || @event.Userid.ControllingBot)
-                    return HookResult.Continue;
-
-                var userid = (int)@event.Userid.UserId;
-
-                Server.NextFrame(() =>
-                {
-                    var player = Utilities.GetPlayerFromUserid(userid);
-                    if (player == null)
-                        return;
-                    
-                    var playerStats = PlayerStats.GetPlayerStats(player);
-                    var dndPlayer = CommonMethods.RetrievePlayer(player);
-                    
-                    var playerClass = dndPlayer.DndClassId;
-                    var playerSpecie = dndPlayer.DndSpecieId;
-                    var specieLevel = CommonMethods.RetrievePlayerSpecieLevel(player);
-
-                    foreach (var spellAbilityKvp in DndAbility.DndAbilities)
-                    {
-                        var ability = spellAbilityKvp.Value;
-                        if(ability.IsCastingWithSpecie(playerStats, player))
-                            MessagePlayer(player, 
-                                $"You have {ability.SpecieLimitedUses} uses of {ability.CommandName} as a(n) {(constants.DndSpecie) playerSpecie}");
-                    }
-
-                    
-                });
-                return HookResult.Continue;
+                new AllSpeciesSpawn()
             });
         }
     }
@@ -68,18 +42,19 @@ public abstract class DndBaseSpecie : DndSpecie
             new Tuple<constants.DndSpecie, Type>(constants.DndSpecie.Human, typeof(DndSpecies.Human)),
             new Tuple<constants.DndSpecie, Type>(constants.DndSpecie.Dragonborn, typeof(DndSpecies.Dragonborn)),
             new Tuple<constants.DndSpecie, Type>(constants.DndSpecie.Aasimar, typeof(DndSpecies.Aasimar)),
+            new Tuple<constants.DndSpecie, Type>(constants.DndSpecie.Tiefling, typeof(DndSpecies.Tiefling)),
         };
-        
+
         var dndSpecieEnumType = typeof(constants.DndSpecie);
         foreach (var dndSpecieEnumTypeCombo in dndSpecies)
         {
             var dndSpecieEnum = dndSpecieEnumTypeCombo.Item1;
             var dndSpecieType = dndSpecieEnumTypeCombo.Item2;
             var constructor = dndSpecieType.GetConstructors();
-            
+
             int dndSpecieId = (int)dndSpecieEnum;
             var dndSpecieRecord = CommonMethods.RetrieveDndSpecie(dndSpecieId);
-            
+
             if (dndSpecieRecord == null)
             {
                 try
@@ -97,7 +72,8 @@ public abstract class DndBaseSpecie : DndSpecie
                     });
                     CommonMethods.CreateNewDndSpecie((DndBaseSpecie)newDndSpecie);
                     Dndcs2.Instance.DndSpecieLookup[dndSpecieEnum] = (DndBaseSpecie)newDndSpecie;
-                    Dndcs2.Instance.Log.LogInformation($"{((DndBaseSpecie) newDndSpecie).DndSpecieName} added to database");
+                    Dndcs2.Instance.Log.LogInformation(
+                        $"{((DndBaseSpecie)newDndSpecie).DndSpecieName} added to database");
                 }
                 catch (Exception e)
                 {
@@ -113,27 +89,70 @@ public abstract class DndBaseSpecie : DndSpecie
                 {
                     specieReqs.Add(new DndSpecieRequirement(
                         specieReq.CreatedBy,
-                        specieReq.CreateDate, 
+                        specieReq.CreateDate,
                         specieReq.UpdatedBy,
                         specieReq.UpdatedDate,
-                        specieReq.Enabled, 
-                        dndSpecieRecord.DndSpecieId, 
+                        specieReq.Enabled,
+                        dndSpecieRecord.DndSpecieId,
                         specieReq.DndRequiredSpecieId,
                         specieReq.DndRequiredSpecieLevel
                     ));
                 }
-                
+
                 var newDndSpecie = constructor[0].Invoke(new object[]
                 {
                     dndSpecieRecord.CreatedBy,
-                    dndSpecieRecord.CreateDate, 
+                    dndSpecieRecord.CreateDate,
                     dndSpecieRecord.UpdatedBy,
                     dndSpecieRecord.UpdatedDate,
                     dndSpecieRecord.Enabled
                 });
-                Dndcs2.Instance.DndSpecieLookup[dndSpecieEnum] = (DndBaseSpecie) newDndSpecie;
-                Dndcs2.Instance.Log.LogInformation($"{((DndBaseSpecie) newDndSpecie).DndSpecieName} loaded from database");
+                Dndcs2.Instance.DndSpecieLookup[dndSpecieEnum] = (DndBaseSpecie)newDndSpecie;
+                Dndcs2.Instance.Log.LogInformation(
+                    $"{((DndBaseSpecie)newDndSpecie).DndSpecieName} loaded from database");
             }
+        }
+    }
+
+    public class AllSpeciesSpawn : EventCallbackFeature<EventPlayerSpawn>
+    {
+        public AllSpeciesSpawn() :
+            base(false, EventCallbackFeaturePriority.Low, HookMode.Post, PlayerPostSpawn, null, null)
+        {
+
+        }
+
+        public static HookResult PlayerPostSpawn(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer,
+            DndPlayer? dndPlayerAttacker)
+        {
+            if (@event.Userid == null || @event.Userid.ControllingBot || (int) @event.Userid.Team == 0)
+                return HookResult.Continue;
+
+            var userid = (int)@event.Userid.UserId;
+
+            Server.NextFrame(() =>
+            {
+                var player = Utilities.GetPlayerFromUserid(userid);
+                if (player == null)
+                    return;
+                if (player.ControllingBot || player.Team == 0)
+                    return;
+
+                var playerStats = PlayerStats.GetPlayerStats(player);
+                var dndPlayer = CommonMethods.RetrievePlayer(player);
+
+                var playerSpecie = dndPlayer.DndSpecieId;
+
+                foreach (var spellAbilityKvp in DndAbility.DndAbilities)
+                {
+                    var ability = spellAbilityKvp.Value;
+                    if (ability.CheckClassSpecieRequirements(player) &&
+                        ability.IsCastingWithSpecie(playerStats, player))
+                        MessagePlayer(player,
+                            $"You have {ability.SpecieLimitedUses} uses of {ability.CommandName} as a(n) {(constants.DndSpecie)playerSpecie}");
+                }
+            });
+            return HookResult.Continue;
         }
     }
 }

@@ -50,6 +50,36 @@ public class Dragonborn : DndBaseSpecie
         
     }
     
+    public class DragonbornSpawn : EventCallbackFeature<EventPlayerSpawn>
+    {
+        public DragonbornSpawn() : 
+            base(false, EventCallbackFeaturePriority.Medium, HookMode.Post, PostSpawn, 
+                null, constants.DndSpecie.Dragonborn)
+        {
+            
+        }
+
+        public static HookResult PostSpawn(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayerVictim,
+            DndPlayer? dndPlayerAttacker)
+        {            
+            var userid = (int) @event.Userid.UserId;
+            Server.NextFrame(() =>
+            {                
+                var player = Utilities.GetPlayerFromUserid(userid);
+                if (player == null)
+                    return;
+                var dndPlayer = CommonMethods.RetrievePlayer(player);
+                if ((constants.DndSpecie)dndPlayer.DndSpecieId != constants.DndSpecie.Dragonborn)
+                    return;                
+                
+                MessagePlayer(player, $"Fire Resistance: You can walk through molotovs/incindiaries as a {constants.DndSpecie.Dragonborn}");
+                MessagePlayer(player, $"Fire Breathing: 10% chance to scorch an enemy with your breathweapon as a {constants.DndSpecie.Dragonborn}");
+
+            });
+            return HookResult.Continue;
+        }
+    }
+    
     public class DragonbornBreathWeapon : EventCallbackFeature<EventPlayerHurt>
     {
         public DragonbornBreathWeapon() : 

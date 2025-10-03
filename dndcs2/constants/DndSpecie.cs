@@ -4,5 +4,6 @@ public enum DndSpecie
 {
     Human = 1,
     Dragonborn = 2,
-    Aasimar = 3
+    Aasimar = 3,
+    Tiefling = 4
 }
