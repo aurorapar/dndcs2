@@ -156,7 +156,7 @@ public abstract class DndBaseClass : DndClass
                 var playerStats = PlayerStats.GetPlayerStats(player);
 
                 MessagePlayer(player,
-                    $"You have a good {playerClass.GoodStat} and average {playerClass.AverageStat} save as a {playerClassName}");
+                    $"You have a good {playerClass.GoodStat} and average {playerClass.AverageStat} as a {playerClassName}");
                 playerStats.SetGoodStat(playerClass.GoodStat);
                 playerStats.SetAverageStat(playerClass.AverageStat);
                 
