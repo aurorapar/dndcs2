@@ -13,6 +13,7 @@ public partial class Dndcs2
     public void RegisterEventCallbacks()
     {
         VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamageHook.OnTakeDamage, HookMode.Pre);
+        VirtualFunctions.CCSPlayer_ItemServices_CanAcquireFunc.Hook(ItemPickupHandler.ItemPickup, HookMode.Pre);
         
         DndEvents = new List<DndEventContainer>()
         {

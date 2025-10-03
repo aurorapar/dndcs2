@@ -53,12 +53,13 @@ public partial class Dndcs2
         CTraceFilter* traceFilter,
         CGameTrace* pGameTrace
     );
-    
 
+    public static ImmutableList<string> Equipment = ImmutableList.Create(
+        "vest", "vesthelm", "defuser", "c4", "knife", "bayonet", "knife_t", "knife_ct"
+    );
     public static ImmutableList<string> Pistols = ImmutableList.Create(
         "glock","hkp2000","usp_silencer","elite","p250","tec9","fiveseven","cz75a","deagle","revolver"
     );
-
     public static ImmutableList<string> Shotguns = ImmutableList.Create(
         "nova", "mag7", "sawedoff", "xm1014"
     );

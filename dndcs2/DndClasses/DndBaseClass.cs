@@ -64,6 +64,8 @@ public abstract class DndBaseClass : DndClass
                         $"You have a good {playerClass.GoodStat} and average {playerClass.AverageStat} save as a {playerClassName}");
                     playerStats.SetGoodStat(playerClass.GoodStat);
                     playerStats.SetAverageStat(playerClass.AverageStat);
+                    
+                    playerStats.PermitWeapons(Dndcs2.Equipment.ToList());
 
                     var bonusHealth = (int)playerStats.GetPlayerHealthPerLevel(HealthRating) * classLevel;
                     MessagePlayer(player,

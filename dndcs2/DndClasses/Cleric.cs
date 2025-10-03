@@ -41,6 +41,15 @@ public class Cleric : DndBaseClass
                 MessagePlayer(player,
                     $"You have {playerStats.Mana} mana for being a Level {clericLevel} {constants.DndClass.Cleric}");
                 
+                playerStats.PermitWeapons(
+                    Dndcs2.Weapons
+                        .Except(Dndcs2.Snipers)
+                        .Except(Dndcs2.Rifles)
+                        .Except(Dndcs2.MGs)
+                        .ToList()
+                );
+                playerStats.PermitWeapon("galilar");
+                playerStats.PermitWeapon("famas");
 
             });
             return HookResult.Continue;

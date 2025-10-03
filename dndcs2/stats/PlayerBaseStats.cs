@@ -16,7 +16,7 @@ public class PlayerBaseStats
     public int Mana { get; private set; }
     public double Speed { get; private set; } = 1.0f;
     public int AbilityCooldown { get; set; } = 0;
-    public List<string> AllowedWeapons { get; private set; } = new();
+    public List<string> AllowedWeapons = new();
     public Dictionary<string, int> SpellLimitedUses { get; private set; } = new();
 
     private PlayerStatRating _wisdomStat = PlayerStatRating.Low;
@@ -51,8 +51,6 @@ public class PlayerBaseStats
         AllowedWeapons = new List<string>();
         AbilityCooldown = 0;
         SpellLimitedUses = new();
-        foreach(var weapon in Dndcs2.Weapons.Except(Dndcs2.Snipers))
-            PermitWeapon(weapon);
         
         InfernoLocation = null;
         Guidance = false;
@@ -112,9 +110,12 @@ public class PlayerBaseStats
             {
                 ChangeSpeed(-1 * amount);
             });
-        }
-        
-        
+        }        
+    }
+
+    public bool CheckWeapon(string weapon)
+    {
+        return AllowedWeapons.Contains(weapon);
     }
 
     public void PermitWeapon(string weapon, float? duration = null)
@@ -145,6 +146,11 @@ public class PlayerBaseStats
             if (AllowedWeapons.Contains(weapon))
                 AllowedWeapons.Remove(weapon);
         }
+    }
+
+    public List<string> GetAllowedWeapons()
+    {
+        return AllowedWeapons.ToList();
     }
 
     public int GetPlayerStatValue(PlayerStat statEnum)

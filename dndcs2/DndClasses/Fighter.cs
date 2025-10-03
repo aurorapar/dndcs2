@@ -36,11 +36,12 @@ public class Fighter : DndBaseClass
                 if ((constants.DndClass)dndPlayer.DndClassId != constants.DndClass.Fighter)
                     return;
 
-                var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
+                var playerStats = PlayerStats.GetPlayerStats(dndPlayer);
                 var fighterLevel = CommonMethods.RetrievePlayerClassLevel(player);
-                MessagePlayer(player,
-                    $"You gained {(int) (2.5 * fighterLevel)} bonus health for being a Level {fighterLevel} {constants.DndClass.Fighter}");
-                playerBaseStats.ChangeMaxHealth((int) (2.5 * fighterLevel));
+                if(fighterLevel >= 11)
+                    playerStats.PermitWeapons(Dndcs2.Weapons.ToList());
+                else 
+                    playerStats.PermitWeapons(Dndcs2.Weapons.Except(Dndcs2.Snipers).ToList());
 
             });
             return HookResult.Continue;

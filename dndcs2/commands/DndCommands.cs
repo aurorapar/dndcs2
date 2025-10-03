@@ -15,6 +15,7 @@ public partial class Dndcs2
         new DndMenu();
         new DndPlayerInfo();
         new DndXpLog();
+        new Weapons();
         RegisterAbilities();
         
         var getplayertarget = new GetPlayerTarget();

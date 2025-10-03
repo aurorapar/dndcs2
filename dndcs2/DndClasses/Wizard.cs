@@ -38,6 +38,10 @@ public class Wizard : DndBaseClass
                 playerStats.ChangeMana(mana);
                 playerStats.ChangeMaxMana(mana);
                 
+                playerStats.PermitWeapons(Dndcs2.Pistols.ToList());
+                playerStats.RestrictWeapon("vest");
+                playerStats.RestrictWeapon("vesthelm");
+                
                 MessagePlayer(player,
                     $"You have {playerStats.Mana} mana for being a Level {wizardLevel} {constants.DndClass.Wizard}");
                 

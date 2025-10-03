@@ -34,10 +34,18 @@ public class Rogue : DndBaseClass
                 var dndPlayer = CommonMethods.RetrievePlayer(player);
                 if ((constants.DndClass)dndPlayer.DndClassId != constants.DndClass.Rogue)
                     return;                
-                var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
+                var playerStats = PlayerStats.GetPlayerStats(dndPlayer);
                 MessagePlayer(player, $"You gained 20% bonus speed for being a {constants.DndClass.Rogue}");
-                playerBaseStats.ChangeSpeed(.2f);
-
+                playerStats.ChangeSpeed(.2f);
+                
+                playerStats.PermitWeapons(
+                    Dndcs2.Weapons
+                        .Except(Dndcs2.Snipers)
+                        .Except(Dndcs2.Rifles)
+                        .Except(Dndcs2.MGs)
+                        .Except(Dndcs2.Shotguns)
+                        .ToList()
+                );
             });
             return HookResult.Continue;
         }, HookMode.Post);
