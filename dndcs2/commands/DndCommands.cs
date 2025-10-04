@@ -19,6 +19,8 @@ public partial class Dndcs2
         RegisterAbilities();
 
         new TestDamage();
+        new GetHealth();
+        new Teleport();
     }
 }
 

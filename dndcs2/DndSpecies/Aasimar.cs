@@ -45,7 +45,7 @@ public class Aasimar : DndBaseSpecie
                     return;
                 
                 if(dndPlayer.DndClassId != (int) constants.DndClass.Cleric)
-                    MessagePlayer(player, $"Blessed: You may use !guidance as an {constants.DndSpecie.Aasimar}");
+                    MessagePlayer(player, $"Blessed: You may use !bless as an {constants.DndSpecie.Aasimar}");
             });
             return HookResult.Continue;
         }

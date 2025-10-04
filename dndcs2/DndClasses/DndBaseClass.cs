@@ -52,6 +52,7 @@ public abstract class DndBaseClass : DndClass
             new(constants.DndClass.Wizard, typeof(DndClasses.Wizard)),
             new(constants.DndClass.Druid, typeof(DndClasses.Druid)),
             new(constants.DndClass.Ranger, typeof(DndClasses.Ranger)),
+            new(constants.DndClass.Monk, typeof(DndClasses.Monk)),
         };        
         
         var dndClassEnumType = typeof(constants.DndClass);

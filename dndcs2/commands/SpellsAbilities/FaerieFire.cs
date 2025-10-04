@@ -32,7 +32,7 @@ public class FaerieFire : DndAbility
     {
         var location = player.AbsOrigin;
         var target = Utilities.GetPlayers()
-            .Where(p => p.PawnIsAlive && p.Team != player.Team && !PlayerStats.GetPlayerStats(p).Tracked) 
+            .Where(p => p.PawnIsAlive && p.Team != player.Team && !PlayerStats.GetPlayerStats(p).FaerieFire) 
             .OrderBy(p => Vector3.Distance((Vector3) p.AbsOrigin, (Vector3) player.AbsOrigin))
             .First();
 

@@ -29,13 +29,16 @@ public class PlayerBaseStats
     private PlayerStatRating _charismaStat = PlayerStatRating.Low;
     private PlayerStatRating _intelligenceStat = PlayerStatRating.Low;
     
-    public bool Guidance;
+    public bool Bless;
     public bool Bane;
-    public bool Tracked;
+    public bool FaerieFire;
+    public int FlurryOfBlows;
+    public Dictionary<int, List<string>> MonkHits = new();
+    public List<int> FlurryMessages = new();
     public Vector? InfernoLocation;
-    public int InfernoSpawnedTick { get; set; }
+    public int InfernoSpawnedTick;
     public Vector? FlashbangLocation;
-    public int FlashbangSpawnedTick { get; set; }
+    public int FlashbangSpawnedTick;
     public List<CChicken> Chickens = new();
 
 
@@ -57,6 +60,9 @@ public class PlayerBaseStats
         MaxHealth = 100;
         MaxMana = 0;
         Mana = 0;
+        FlurryOfBlows = 0;
+        MonkHits = new();
+        FlurryMessages = new();
         if(Speed != 1)
             ChangeSpeed((Speed - 1) * -1);
         
@@ -67,9 +73,9 @@ public class PlayerBaseStats
         
         Chickens = new();
         InfernoLocation = null;
-        Guidance = false;
+        Bless = false;
         Bane = false;
-        Tracked = false;
+        FaerieFire = false;
     }
 
     public void ChangeMaxHealth(int amount, float? duration = null)
@@ -236,7 +242,7 @@ public class PlayerBaseStats
             }
         }))(statRating, playerLevel);
         
-        return stat + (Guidance ? new Random().Next(0, 3) + 1 : 0) - (Bane ? new Random().Next(0, 3) + 1 : 0);
+        return stat + (Bless ? new Random().Next(0, 3) + 1 : 0) - (Bane ? new Random().Next(0, 3) + 1 : 0);
     }
 
     public int GetProficiencyBonus(int level)

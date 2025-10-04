@@ -10,5 +10,6 @@ public static class DndClassDescription
         { DndClass.Wizard, "Draws on the subtle weave of magic that permeates the cosmos to cast dazzling, and frightening, spells" },
         { DndClass.Druid, "Embodiment of nature's resilience, cunning, and fury." },
         { DndClass.Ranger, "Endlessly watch amid the dense-packed trees of trackless forests and across wide and empty plains." },
+        { DndClass.Monk, "Infused by their ability to magically harness the energy that flows in their bodies." },
     };
 }

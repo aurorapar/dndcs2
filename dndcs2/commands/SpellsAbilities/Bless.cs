@@ -4,9 +4,9 @@ using Dndcs2.stats;
 
 namespace Dndcs2.commands.SpellsAbilities;
 
-public class Guidance : DndAbility
+public class Bless : DndAbility
 {
-    public Guidance() : 
+    public Bless() : 
         base(
             new List<AbilityClassSpecieRequirement>()
             {
@@ -17,7 +17,7 @@ public class Guidance : DndAbility
             null, 
             .1,
             1,
-            "!guidance", 
+            "!bless", 
             "Buffs someones stats with an added 1d4 per roll")
     {
         
@@ -33,21 +33,21 @@ public class Guidance : DndAbility
             return false;
 
         var targetStats = PlayerStats.GetPlayerStats(target);
-        if (targetStats.Guidance)
+        if (targetStats.Bless)
         {
-            MessagePlayer(player, "The target has already been blessed with Guidance");
+            MessagePlayer(player, "The target has already been Blessed");
             return false;
         }
 
-        targetStats.Guidance = true;
+        targetStats.Bless = true;
         if (player != target)
         {
-            MessagePlayer(player, $"You have blessed {target.PlayerName} with Guidance");
-            MessagePlayer(target, $"{player.PlayerName} blessed you with Guidance");
+            MessagePlayer(player, $"You have Blessed {target.PlayerName}");
+            MessagePlayer(target, $"You were Blessed by {player.PlayerName}");
         }
         else
         {
-            MessagePlayer(player, $"You have been blessed with Guidance");
+            MessagePlayer(player, $"You have been Blessed");
         }
 
         return true;

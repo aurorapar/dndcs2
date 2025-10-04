@@ -38,7 +38,7 @@ public abstract class DndAbility : DndCommand
             new Mana(),
             new Spells(),
             new Abilities(),
-            new Guidance(),
+            new Bless(),
             new ColorSpray(),
             new Bane(),
             new GoodChicken(),
