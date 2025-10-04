@@ -8,13 +8,11 @@ namespace Dndcs2.commands.SpellsAbilities;
 
 public class Mana : DndAbility
 {
+    private static List<AbilityClassSpecieRequirement> _manaAbility = Enum.GetValues(typeof(constants.DndClass)).Cast<constants.DndClass>()
+        .Select(c => ClassSpecieAbilityRequirementFactory.ClassSpecieAbilityRequirement(c)).ToList();
     public Mana() : 
         base(
-            new List<AbilityClassSpecieRequirement>()
-            {
-                ClassSpecieAbilityRequirementFactory.ClassSpecieAbilityRequirement(DndClass.Cleric),
-                ClassSpecieAbilityRequirementFactory.ClassSpecieAbilityRequirement(DndClass.Wizard),
-            }, 
+            new List<AbilityClassSpecieRequirement>(_manaAbility), 
             0, 
             null, 
             0,

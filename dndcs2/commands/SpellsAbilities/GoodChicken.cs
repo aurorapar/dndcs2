@@ -20,7 +20,7 @@ public class GoodChicken : DndAbility
             5, 
             null, 
             .1,
-            1,
+            0,
             "!goodchicken", 
             "Spawns chickens your team can kill for health")
     {

@@ -148,7 +148,12 @@ public abstract class DndAbility : DndCommand
                         && (r.ClassLevel == null || r.ClassLevel <= classLevel)
                         && (r.SpecieLevel == null || r.SpecieLevel <= specieLevel)) 
         );
-        var meetsSpecieRequirements = ClassSpecieRequirements.Where(r => r.DndSpecie != null && r.DndClass == null && (r.SpecieLevel == null || r.SpecieLevel <= specieLevel)).ToList();       
+        var meetsSpecieRequirements = ClassSpecieRequirements.Where(r => r.DndSpecie != null && r.DndClass == null && (r.SpecieLevel == null || r.SpecieLevel <= specieLevel)).ToList();
+        foreach (var r in meetsClassRequirements)
+        {
+            Dndcs2.Instance.Log.LogInformation($"{r.DndClass?.ToString()} {r.DndSpecie?.ToString()}");
+            Dndcs2.Instance.Log.LogInformation($"{!meetsClassRequirements.Any() && meetsSpecieRequirements.Any()}");
+        }
         
         //Dndcs2.Instance.Log.LogInformation($"Class reqs? {meetsSpecieRequirements.Any()}");
         //Dndcs2.Instance.Log.LogInformation($"Specie reqs? {meetsClassRequirements.Any()}");

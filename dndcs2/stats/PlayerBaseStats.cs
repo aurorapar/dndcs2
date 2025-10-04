@@ -90,7 +90,8 @@ public class PlayerBaseStats
         var player = Utilities.GetPlayerFromUserid(Userid);
         Server.NextFrame(() =>
         {
-            player.PlayerPawn.Value.Health += amount;
+            var newHealth = Math.Min(MaxHealth - player.PlayerPawn.Value.Health, amount);
+            player.PlayerPawn.Value.Health += newHealth;
             Utilities.SetStateChanged(player.PlayerPawn.Value, "CBaseEntity", "m_iHealth");
         });
         
