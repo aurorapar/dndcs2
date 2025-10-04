@@ -56,7 +56,7 @@ public class Monk : DndBaseClass
                     return;
                 
                 var playerStats = PlayerStats.GetPlayerStats(dndPlayer);
-                MessagePlayer(player, $"You gained 40% bonus speed for being a {constants.DndClass.Monk}");
+                MessagePlayer(player, $"Dash: You gained 40% bonus speed for being a {constants.DndClass.Monk}");
                 playerStats.ChangeSpeed(.4f);
                 
                 MessagePlayer(player, $"Furry of Blows: Successive hits increase your damage by 10% (knife hits count as 3)");
