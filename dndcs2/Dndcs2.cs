@@ -14,7 +14,7 @@ namespace Dndcs2;
 public partial class Dndcs2 : BasePlugin
 {
     public override string ModuleName => "[Dungeons & Dragons CS2]";
-    public override string ModuleVersion => "0.0.1";
+    public override string ModuleVersion => "0.0.5";
     public override string ModuleAuthor => "Aurora";
     public override string ModuleDescription  => "An overhaul that brings D&D Mechanics to CS2";
     public static Dndcs2 Instance { get; private set; }
