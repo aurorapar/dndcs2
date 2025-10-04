@@ -4,6 +4,7 @@ using CS2MenuManager.API.Class;
 using CS2MenuManager.API.Menu;
 using Dndcs2.constants;
 using Dndcs2.Sql;
+using Dndcs2.stats;
 using static Dndcs2.messages.DndMessages;
 using static Dndcs2.constants.DndClassDescription;
 using static Dndcs2.constants.DndSpecieDescription;
@@ -18,7 +19,7 @@ public class DndMainMenu : PlayerMenu
         AddItem("D&D Info", (player, option) => ShowInfo(player, option));
         AddItem("Select Class", (player, option) => ShowClasses(player, option));
         AddItem("Select Specie", (player, option) => ShowSpecies(player, option));
-        AddItem("Player Stats", (player, option) => PlayerStats(player, option));
+        AddItem("Player Stats", (player, option) => ShowPlayerStats(player, option));
         AddItem("Player Info", (player, option) => PlayerInfo(player, option));
     }
 
@@ -47,19 +48,15 @@ public class DndMainMenu : PlayerMenu
             .ToList().FirstOrDefault(c => c.ToString().Equals(selectedText, StringComparison.OrdinalIgnoreCase));
         var classDescription = DndClassDescriptions[dndClass];
         classDescription = "<font color=\"lime\">" + selectedOption.Text + "</font><br>" + classDescription;
-        var result = CommonMethods.ChangeClass(player, dndClass);
-        if (!result)
-        {
-            if(CommonMethods.RetrievePlayer(player).DndClassId == (int) dndClass)
-                classDescription += $"<br><font color=\"red\">You are already a {selectedOption.Text}</red>";
-            else if (player.PawnIsAlive)
-                classDescription += "<br><font color=\"red\">You must not be alive to change class</font>";
-            else if(!CommonMethods.CanPlayClass(player, dndClass))
-                classDescription += $"<br><font color=\"red\">You do not meet the requirements to play {selectedOption.Text}</font>";
-        }
+
+        if (CommonMethods.RetrievePlayer(player).DndClassId == (int)dndClass)
+            classDescription += $"<br><font color=\"red\">You are already a {selectedOption.Text}</red>";
+        else if(!CommonMethods.CanPlayClass(player, dndClass))        
+            classDescription += $"<br><font color=\"red\">You do not meet the requirements to play {selectedOption.Text}</font>";
         else
         {
-            classDescription += $"<br><font color=\"lime\">You are now a {selectedOption.Text}</font>";
+            classDescription += $"<br><font color=\"lime\">You will be a {selectedOption.Text} the next time you spawn.</font>";
+            PlayerStats.GetPlayerStats(player).QueuedClass = dndClass;
         }
         
         Server.NextFrame(() =>
@@ -87,19 +84,15 @@ public class DndMainMenu : PlayerMenu
             .ToList().FirstOrDefault(c => c.ToString().Equals(selectedText, StringComparison.OrdinalIgnoreCase));
         var specieDescription = DndSpecieDescriptions[dndSpecie];
         specieDescription = "<font color=\"lime\">" + selectedOption.Text + "</font><br>" + specieDescription;
-        var result = CommonMethods.ChangeSpecie(player, dndSpecie);
-        if (!result)
-        {
-            if(CommonMethods.RetrievePlayer(player).DndSpecieId == (int) dndSpecie)
-                specieDescription += $"<br><font color=\"red\">You are already a {selectedOption.Text}</red>";
-            else if (player.PawnIsAlive)
-                specieDescription += "<br><font color=\"red\">You must not be alive to change class</font>";
-            else if(!CommonMethods.CanPlaySpecie(player, dndSpecie))
-                specieDescription += $"<br><font color=\"red\">You do not meet the requirements to play {selectedOption.Text}</font>";
-        }
+
+        if(CommonMethods.RetrievePlayer(player).DndSpecieId == (int) dndSpecie)
+            specieDescription += $"<br><font color=\"red\">You are already a {selectedOption.Text}</red>";
+        else if(!CommonMethods.CanPlaySpecie(player, dndSpecie))
+            specieDescription += $"<br><font color=\"red\">You do not meet the requirements to play {selectedOption.Text}</font>";
         else
         {
-            specieDescription += $"<br><font color=\"lime\">You are now a {selectedOption.Text}</font>";
+            specieDescription += $"<br><font color=\"lime\">You will be a {selectedOption.Text} the next time you spawn.</font>";
+            PlayerStats.GetPlayerStats(player).QueuedSpecie = dndSpecie;
         }
         
         Server.NextFrame(() =>
@@ -108,7 +101,7 @@ public class DndMainMenu : PlayerMenu
         });
     }
     
-    public void PlayerStats(CCSPlayerController player, ItemOption selectedOption)
+    public void ShowPlayerStats(CCSPlayerController player, ItemOption selectedOption)
     {
         Dndcs2.ShowDndXp(player, player);
     }

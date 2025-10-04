@@ -11,7 +11,8 @@ namespace Dndcs2.stats;
 public class PlayerBaseStats
 {
     public int Userid {get; private set;}
-    public int SpawnedOnConnect = 0;
+    public constants.DndClass? QueuedClass = null;
+    public constants.DndSpecie? QueuedSpecie = null;
     public int MaxHealth { get; private set; } = 100;
     public int MaxMana { get; private set; } = 0;
     public int Mana { get; private set; }
@@ -47,6 +48,12 @@ public class PlayerBaseStats
     public void Reset()
     {
         //Dndcs2.Instance.Log.LogInformation($"PlayerBaseStats Reset for {Utilities.GetPlayerFromUserid(Userid).PlayerName}");
+        if (QueuedClass != null)
+            CommonMethods.ChangeClass(Utilities.GetPlayerFromUserid(Userid), (constants.DndClass) QueuedClass);
+        if (QueuedSpecie != null)
+            CommonMethods.ChangeSpecie(Utilities.GetPlayerFromUserid(Userid), (constants.DndSpecie) QueuedSpecie);
+        QueuedClass = null;
+        QueuedSpecie = null;
         MaxHealth = 100;
         MaxMana = 0;
         Mana = 0;

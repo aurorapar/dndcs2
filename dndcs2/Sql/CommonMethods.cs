@@ -326,10 +326,7 @@ public static class CommonMethods
     }
 
     public static bool ChangeClass(CCSPlayerController player, constants.DndClass newClass)
-    {
-        if (player.PawnIsAlive)
-            return false;
-        
+    {        
         var dndPlayer = RetrievePlayer(player);
         if (dndPlayer.DndClassId == (int)newClass)
             return false;
@@ -371,10 +368,7 @@ public static class CommonMethods
     }
     
     public static bool ChangeSpecie(CCSPlayerController player, constants.DndSpecie newSpecie)
-    {
-        if (player.PawnIsAlive)
-            return false;
-        
+    {        
         var dndPlayer = RetrievePlayer(player);
         if (dndPlayer.DndSpecieId == (int)newSpecie)
             return false;
