@@ -22,32 +22,10 @@ public class Dragonborn : DndBaseSpecie
         new Collection<DndSpecieRequirement>())
     {        
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
-            new DragonbornBreathWeapon()
-        });
-        
-        Dndcs2.Instance.RegisterEventHandler<EventPlayerSpawn>((@event, info) =>
-        {
-            if (@event.Userid == null || @event.Userid.ControllingBot)
-                return HookResult.Continue;
+            new DragonbornBreathWeapon(),
+            new DragonbornSpawn(),
             
-            var userid = (int) @event.Userid.UserId;
-            Server.NextFrame(() =>
-            {                
-                var player = Utilities.GetPlayerFromUserid(userid);
-                if (player == null)
-                    return;
-                var dndPlayer = CommonMethods.RetrievePlayer(player);
-                if ((constants.DndSpecie)dndPlayer.DndSpecieId != constants.DndSpecie.Dragonborn)
-                    return;                
-                
-                MessagePlayer(player, $"Fire Resistance: You can walk through molotovs/incindiaries as a {constants.DndSpecie.Dragonborn}");
-                MessagePlayer(player, $"Fire Breathing: 10% chance to scorch an enemy with your breathweapon as a {constants.DndSpecie.Dragonborn}");
-                
-
-            });
-            return HookResult.Continue;
-        }, HookMode.Post);
-        
+        });
     }
     
     public class DragonbornSpawn : EventCallbackFeature<EventPlayerSpawn>
@@ -72,8 +50,8 @@ public class Dragonborn : DndBaseSpecie
                 if ((constants.DndSpecie)dndPlayer.DndSpecieId != constants.DndSpecie.Dragonborn)
                     return;                
                 
-                MessagePlayer(player, $"Fire Resistance: You can walk through molotovs/incindiaries as a {constants.DndSpecie.Dragonborn}");
-                MessagePlayer(player, $"Fire Breathing: 10% chance to scorch an enemy with your breathweapon as a {constants.DndSpecie.Dragonborn}");
+                MessagePlayer(player, $"Fire Resistance: Immune to molotovs/incindiaries as a {constants.DndSpecie.Dragonborn}");
+                MessagePlayer(player, $"Fire Breathing: 10% chance to scorch an enemy with your Breath Weapon as a {constants.DndSpecie.Dragonborn}");
 
             });
             return HookResult.Continue;

@@ -17,6 +17,8 @@ public partial class Dndcs2
         new DndXpLog();
         new Weapons();
         RegisterAbilities();
+
+        new TestDamage();
     }
 }
 

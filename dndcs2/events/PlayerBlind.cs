@@ -21,6 +21,7 @@ public class PlayerBlind : DndEvent<EventPlayerBlind>
         var victim = @event.Userid;
         if (!victim.PawnIsAlive)
             return HookResult.Stop;
+        var eventAttacker = @event.Attacker;
         
         var flashbang = Utilities.GetEntityFromIndex<CFlashbangProjectile>(@event.Entityid);
         foreach (var playerStats in Utilities.GetPlayers().Select(p => PlayerStats.GetPlayerStats(p)))
@@ -32,19 +33,15 @@ public class PlayerBlind : DndEvent<EventPlayerBlind>
             if (Vector3.Distance((Vector3)flashbang.AbsOrigin, (Vector3)playerStats.FlashbangLocation) > 20)
                 continue;
             
-            Dndcs2.Instance.Log.LogInformation("Colorspray flashbang found");
-
-            if(Vector3.Distance((Vector3)victim.AbsOrigin, (Vector3)flashbang.AbsOrigin) > 700)
-                continue;
+            var attacker = Utilities.GetPlayerFromUserid(playerStats.Userid);
             
-            if ((int)victim.Team == flashbang.TeamNum)
+            if ((int)victim.Team == attacker.TeamNum)
             {
                 Dndcs2.Instance.Log.LogInformation("Should have stopped event");
                 Dndcs2.UnblindPlayer(victim);
                 return HookResult.Stop;
             }
-
-            var attacker = Utilities.GetPlayerFromUserid(playerStats.Userid);
+            
             var victimStats = PlayerStats.GetPlayerStats(victim);
             if (victimStats.MakeDiceCheck(attacker, PlayerStat.Intelligence, PlayerStat.Constitution))
             {

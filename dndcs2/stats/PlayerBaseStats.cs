@@ -34,6 +34,7 @@ public class PlayerBaseStats
     public int InfernoSpawnedTick { get; set; }
     public Vector? FlashbangLocation;
     public int FlashbangSpawnedTick { get; set; }
+    public List<CChicken> Chickens = new();
 
 
     public PlayerBaseStats(int userid)
@@ -56,6 +57,7 @@ public class PlayerBaseStats
         SpellLimitedUses = new();
         SpecieLimitedUses = new();
         
+        Chickens = new();
         InfernoLocation = null;
         Guidance = false;
         Bane = false;
@@ -79,6 +81,24 @@ public class PlayerBaseStats
             new GenericTimer(duration.Value, duration.Value, 1, () =>
             {
                 ChangeMaxHealth(-1 * amount);
+            });
+        }
+    }
+    
+    public void ChangeHealth(int amount, float? duration = null)
+    {
+        var player = Utilities.GetPlayerFromUserid(Userid);
+        Server.NextFrame(() =>
+        {
+            player.PlayerPawn.Value.Health += amount;
+            Utilities.SetStateChanged(player.PlayerPawn.Value, "CBaseEntity", "m_iHealth");
+        });
+        
+        if (duration.HasValue)
+        {
+            new GenericTimer(duration.Value, duration.Value, 1, () =>
+            {
+                ChangeHealth(amount * -1);
             });
         }
     }

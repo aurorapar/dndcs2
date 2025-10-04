@@ -40,7 +40,8 @@ public abstract class DndAbility : DndCommand
             new Abilities(),
             new Guidance(),
             new ColorSpray(),
-            new Bane()
+            new Bane(),
+            new GoodChicken(),
         };
         foreach(var spell in spells)
             DndAbilities[spell.CommandName] = spell;

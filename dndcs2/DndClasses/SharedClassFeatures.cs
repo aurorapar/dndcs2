@@ -11,6 +11,7 @@ public class SharedClassFeatures
 {
     public static void AddFullCasterMana(int level, PlayerBaseStats playerStats, DndPlayer dndPlayer)
     {
+        Dndcs2.Instance.Log.LogInformation($"Gave mana to {dndPlayer.DndPlayerAccountId}");
         int mana = (level + 1) / 2 * 5 + 10;
         mana += level / 2 * 10;
         playerStats.ChangeMana(mana);

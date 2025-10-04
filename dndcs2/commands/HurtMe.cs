@@ -31,6 +31,6 @@ public class TestDamage : DndCommand
 
     public void DoDamage(CCSPlayerController player)
     {
-        Dndcs2.DamageTarget(player, player, 100, damageType: DamageTypes_t.DMG_RADIATION);
+        Dndcs2.DamageTarget(player, player, 50, damageType: DamageTypes_t.DMG_RADIATION);
     }
 }
