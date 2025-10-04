@@ -9,6 +9,17 @@ namespace Dndcs2.DndClasses;
 
 public class SharedClassFeatures
 {
+    public static void AddHalfCasterMana(int level, PlayerBaseStats playerStats, DndPlayer dndPlayer)
+    {
+        Dndcs2.Instance.Log.LogInformation($"Gave mana to {dndPlayer.DndPlayerAccountId}");
+        int mana = level * 5 + 5;
+        playerStats.ChangeMana(mana);
+        playerStats.ChangeMaxMana(mana);
+                
+        MessagePlayer(Utilities.GetPlayerFromUserid(playerStats.Userid),
+            $"You have {playerStats.Mana} mana for being a Level {level} {(constants.DndClass) dndPlayer.DndClassId} (Check current mana with !mana)");
+    }
+    
     public static void AddFullCasterMana(int level, PlayerBaseStats playerStats, DndPlayer dndPlayer)
     {
         Dndcs2.Instance.Log.LogInformation($"Gave mana to {dndPlayer.DndPlayerAccountId}");

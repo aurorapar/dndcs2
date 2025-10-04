@@ -46,6 +46,7 @@ public static class OnTakeDamageHook
             {
 
                 MessagePlayer(attacker, "A Druid's Good Chicken healed you for 10HP!");
+                MessagePlayer(druid, $"One of your Good Chickens healed {attacker.PlayerName}");
                 PlayerStats.GetPlayerStats(attacker).ChangeHealth(10);
                 break;
             }

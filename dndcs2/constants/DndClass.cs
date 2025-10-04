@@ -7,4 +7,5 @@ public enum DndClass
     Cleric = 3,
     Wizard = 4,
     Druid = 5,
+    Ranger = 6
 }

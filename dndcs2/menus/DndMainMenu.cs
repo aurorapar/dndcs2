@@ -115,6 +115,17 @@ public class DndMainMenu : PlayerMenu
     
     public void PlayerInfo(CCSPlayerController player, ItemOption selectedOption)
     {
-        MessagePlayer(player, "Use the command 'playerinfo [player name]'");
+        PlayerMenu playerInfoMenu = new("[D&D Player Info]", Dndcs2.Instance);
+        foreach (var person in Utilities.GetPlayers())
+            playerInfoMenu.AddItem(person.PlayerName, (player, option) => DoPlayerInfo(player, option));
+        
+        playerInfoMenu.PrevMenu = new DndMainMenu();
+        playerInfoMenu.Display(player, 30);
     }
+
+    public void DoPlayerInfo(CCSPlayerController player, ItemOption selectedOption)
+    {
+        Dndcs2.ShowDndXp(player, Utilities.GetPlayers().First(p => p.PlayerName == selectedOption.Text));
+    }
+    
 }

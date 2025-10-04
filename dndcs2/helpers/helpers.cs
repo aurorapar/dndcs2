@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using CounterStrikeSharp.API;
@@ -608,5 +609,42 @@ public partial class Dndcs2
     public static void UnblindPlayer(CCSPlayerController player)
     {
         player.PlayerPawn.Value.BlindUntilTime = Server.CurrentTime;
-    }
+    }    
+    
+    public static void SetGlowing(CBaseEntity entity, Color color)
+    {
+        CBaseModelEntity? modelGlow = Utilities.CreateEntityByName<CBaseModelEntity>("prop_dynamic");
+        CBaseModelEntity? modelRelay = Utilities.CreateEntityByName<CBaseModelEntity>("prop_dynamic");
+        if (modelGlow == null || modelRelay == null)
+        {
+            return;
+        }
+
+        string modelName;
+        if(entity is CCSPlayerController)
+            modelName = ((CCSPlayerController) entity).PlayerPawn.Value.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState?.ModelName ?? string.Empty;
+        else
+            modelName = entity.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState?.ModelName ?? string.Empty;
+
+        modelRelay.SetModel(modelName);
+        modelRelay.Spawnflags = 256u;
+        modelRelay.RenderMode = RenderMode_t.kRenderNone;
+        modelRelay.DispatchSpawn();
+
+        modelGlow.SetModel(modelName);
+        modelGlow.Spawnflags = 256u;
+        modelGlow.DispatchSpawn();
+
+        modelGlow.Glow.GlowColorOverride = color;
+        modelGlow.Glow.GlowRange = 5000;
+        modelGlow.Glow.GlowTeam = -1;
+        modelGlow.Glow.GlowType = 3;
+        modelGlow.Glow.GlowRangeMin = 100;
+
+        if(entity is CCSPlayerController)
+            modelRelay.AcceptInput("FollowEntity", ((CCSPlayerController) entity).PlayerPawn.Value, modelRelay, "!activator");
+        else
+            modelRelay.AcceptInput("FollowEntity", entity, modelRelay, "!activator");
+        modelGlow.AcceptInput("FollowEntity", modelRelay, modelGlow, "!activator");
+    }    
 }

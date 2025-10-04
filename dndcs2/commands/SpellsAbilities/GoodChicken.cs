@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory;
@@ -54,6 +55,15 @@ public class GoodChicken : DndAbility
         chicken.Teleport(location, Vector3.Zero, Vector3.Zero);
         chicken.DispatchSpawn();
         Schema.SetSchemaValue(chicken.Handle, "CChicken", "m_leader", player.Pawn.Raw);
+        Color color;
+        if(player.Team == CsTeam.CounterTerrorist) 
+            color = Color.FromName("blue");
+        else 
+            color = Color.FromName("red");
+
+        Dndcs2.SetGlowing(chicken, color);
+        
+        
         return true;
     }
 }

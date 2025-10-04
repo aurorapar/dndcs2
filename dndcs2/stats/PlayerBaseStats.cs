@@ -30,6 +30,7 @@ public class PlayerBaseStats
     
     public bool Guidance;
     public bool Bane;
+    public bool Tracked;
     public Vector? InfernoLocation;
     public int InfernoSpawnedTick { get; set; }
     public Vector? FlashbangLocation;
@@ -61,6 +62,7 @@ public class PlayerBaseStats
         InfernoLocation = null;
         Guidance = false;
         Bane = false;
+        Tracked = false;
     }
 
     public void ChangeMaxHealth(int amount, float? duration = null)

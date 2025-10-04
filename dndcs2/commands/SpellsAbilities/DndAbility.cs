@@ -42,6 +42,7 @@ public abstract class DndAbility : DndCommand
             new ColorSpray(),
             new Bane(),
             new GoodChicken(),
+            new FaerieFire(),
         };
         foreach(var spell in spells)
             DndAbilities[spell.CommandName] = spell;
@@ -149,11 +150,13 @@ public abstract class DndAbility : DndCommand
                         && (r.SpecieLevel == null || r.SpecieLevel <= specieLevel)) 
         );
         var meetsSpecieRequirements = ClassSpecieRequirements.Where(r => r.DndSpecie != null && r.DndClass == null && (r.SpecieLevel == null || r.SpecieLevel <= specieLevel)).ToList();
-        foreach (var r in meetsClassRequirements)
-        {
-            Dndcs2.Instance.Log.LogInformation($"{r.DndClass?.ToString()} {r.DndSpecie?.ToString()}");
-            Dndcs2.Instance.Log.LogInformation($"{!meetsClassRequirements.Any() && meetsSpecieRequirements.Any()}");
-        }
+        
+        //
+        // foreach (var r in meetsClassRequirements)
+        // {
+        //     Dndcs2.Instance.Log.LogInformation($"{r.DndClass?.ToString()} {r.DndSpecie?.ToString()}");
+        //     Dndcs2.Instance.Log.LogInformation($"{!meetsClassRequirements.Any() && meetsSpecieRequirements.Any()}");
+        // }
         
         //Dndcs2.Instance.Log.LogInformation($"Class reqs? {meetsSpecieRequirements.Any()}");
         //Dndcs2.Instance.Log.LogInformation($"Specie reqs? {meetsClassRequirements.Any()}");
