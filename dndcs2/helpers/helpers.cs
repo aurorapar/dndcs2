@@ -626,7 +626,7 @@ public partial class Dndcs2
             modelName = ((CCSPlayerController) entity).PlayerPawn.Value.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState?.ModelName ?? string.Empty;
         else
             modelName = entity.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState?.ModelName ?? string.Empty;
-
+        
         modelRelay.SetModel(modelName);
         modelRelay.Spawnflags = 256u;
         modelRelay.RenderMode = RenderMode_t.kRenderNone;

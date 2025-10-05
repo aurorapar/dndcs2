@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
+using Dndcs2.DndClasses;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.Sql;
 using Dndcs2.stats;
@@ -13,6 +14,7 @@ public abstract class DndAbility : DndCommand
     private List<AbilityClassSpecieRequirement> ClassSpecieRequirements = new();
     
     public string Name { get; set; }
+    public bool Hidden { get; protected set; }
     public int ManaCost { get; } = 0;
     public int? LimitedUses { get; } = null;
     private double AbilityCooldown = .1;
@@ -44,8 +46,11 @@ public abstract class DndAbility : DndCommand
             new GoodChicken(),
             new FaerieFire(),
         };
-        foreach(var spell in spells)
-            DndAbilities[spell.CommandName] = spell;
+        foreach (var spell in spells)
+        {
+            if(!spell.Hidden)
+                DndAbilities[spell.CommandName] = spell;
+        }
     }
 
     public List<AbilityClassSpecieRequirement> GetClassSpecieRequirements()
@@ -124,6 +129,9 @@ public abstract class DndAbility : DndCommand
 
         if (UseAbility(player, playerStats, arguments))
         {
+            if(!Hidden)
+                //player.EmitSound("UI.XP.Star.Full");
+            
             if (castingWithSpecie)            
                 playerStats.SpecieLimitedUses[CommandName]--;            
             else

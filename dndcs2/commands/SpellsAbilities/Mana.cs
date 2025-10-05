@@ -21,7 +21,7 @@ public class Mana : DndAbility
             "!mana", 
             "Allows user to get mana left")
     {
-        
+        Hidden = true;
     }
 
     public override bool UseAbility(CCSPlayerController player, PlayerBaseStats playerStats, List<string> arguments)
@@ -75,7 +75,7 @@ public class Mana : DndAbility
             //     bars.Add(new String(missingManaCharacter, barSize));
             // }
 
-            foreach (var bar in bars)
+            foreach (var bar in bars.Take(Math.Min(4, bars.Count)))
                 message += $"[{bar}]<br>";
         }
         

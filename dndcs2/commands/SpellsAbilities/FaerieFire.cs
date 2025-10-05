@@ -57,6 +57,7 @@ public class FaerieFire : DndAbility
 
             Dndcs2.SetGlowing(target, color);
             MessagePlayer(target, "You are glowing brightly!");
+            target.EmitSound("UIPanorama.XrayStart");
             MessagePlayer(player, "You are tracking your quarry...");
         }
         

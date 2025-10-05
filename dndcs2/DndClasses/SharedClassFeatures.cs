@@ -9,13 +9,6 @@ namespace Dndcs2.DndClasses;
 
 public class SharedClassFeatures
 {
-    private static List<string> _hiddenAbilities = new List<string>()
-    {
-        "!mana",
-        "!spells",
-        "!abilities"
-    };
-    
     public static void AddHalfCasterMana(int level, PlayerBaseStats playerStats, DndPlayer dndPlayer)
     {
         Dndcs2.Instance.Log.LogInformation($"Gave mana to {dndPlayer.DndPlayerAccountId}");
@@ -46,9 +39,9 @@ public class SharedClassFeatures
         foreach (var spellAbilityKvp in DndAbility.DndAbilities)
         {
             var ability = spellAbilityKvp.Value;
-            if (_hiddenAbilities.Contains(ability.CommandName))
+            if(ability.Hidden)
                 continue;
-
+            
             if (ability.CheckClassSpecieRequirements(player))
             {
                 var abilityCost = $"";

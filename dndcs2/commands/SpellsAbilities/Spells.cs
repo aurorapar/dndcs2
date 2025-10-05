@@ -24,7 +24,7 @@ public class Spells : DndAbility
             "!spells", 
             "Allows user to check spell & ability list")
     {
-        
+        Hidden = true;
     }
 
     public override bool UseAbility(CCSPlayerController player, PlayerBaseStats playerStats, List<string> arguments)

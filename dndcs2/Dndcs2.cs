@@ -60,6 +60,10 @@ public partial class Dndcs2 : BasePlugin
     {
         RegisterListener<Listeners.OnTick>(OnTick);
         RegisterListener<Listeners.OnMapStart>(OnMapStartHandler);
+        RegisterListener<Listeners.OnServerPrecacheResources>((manifest) =>
+        {
+            manifest.AddResource("models/chicken/chicken_roasted.vmdl");
+        });
 
         if (hotReload)
         {

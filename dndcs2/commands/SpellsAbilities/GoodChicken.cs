@@ -55,6 +55,8 @@ public class GoodChicken : DndAbility
         playerStats.Chickens.Add(chicken);
         chicken.Teleport(location, Vector3.Zero, Vector3.Zero);
         chicken.DispatchSpawn();
+        chicken.SetModel("models/chicken/chicken_roasted.vmdl");
+        chicken.EmitSound("Chicken.Death", volume: 5);
         Schema.SetSchemaValue(chicken.Handle, "CChicken", "m_leader", player.Pawn.Raw);
         Color color;
         if(player.Team == CsTeam.CounterTerrorist) 

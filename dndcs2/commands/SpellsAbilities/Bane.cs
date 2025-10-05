@@ -43,6 +43,7 @@ public class Bane : DndAbility
 
         targetStats.Bane = true;
         MessagePlayer(player, $"You have cursed {target.PlayerName} with Bane");
+        target.EmitSound("SprayCan.ShakeGhost");
         MessagePlayer(target, $"{player.PlayerName} cursed you with Bane");
         
         return true;

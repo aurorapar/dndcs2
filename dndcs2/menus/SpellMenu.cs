@@ -14,12 +14,6 @@ namespace Dndcs2.menus;
 public class SpellMenu : PlayerMenu
 {
     private Dictionary<string, Tuple<string, string, string>> _spellBook = new();
-    private List<string> _hiddenAbilities = new List<string>()
-    {
-        "!mana",
-        "!spells",
-        "!abilities"
-    };
     
     public SpellMenu(CCSPlayerController player, DndPlayer dndPlayer, PlayerBaseStats playerStats) : base ("[Spellbook]", Dndcs2.Instance)
     {
@@ -27,11 +21,7 @@ public class SpellMenu : PlayerMenu
         
         ExitButton = true;
         foreach (var spell in _spellBook)
-        {
-            if (_hiddenAbilities.Contains(spell.Key))
-                continue;
             AddItem(spell.Key, (player, option) => DisplaySpellInformation(player, option));
-        }
     }
 
     public void DisplaySpellInformation(CCSPlayerController player, ItemOption selectedOption)
