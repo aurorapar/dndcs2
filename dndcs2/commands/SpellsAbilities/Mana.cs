@@ -31,32 +31,52 @@ public class Mana : DndAbility
             message = "You have no mana.";
         else
         {
-            char manaCharacter = '=';
-            char missingManaCharacter = '-';
-            int manaPerBar = 30;
+            char manaCharacter = '✨';
+            char missingManaCharacter = '.';
+            int manaPerBar = 20;
             
             int maxMana = playerStats.MaxMana;
             int currentMana = playerStats.Mana;
+            double currentManaPercent = (double)currentMana / maxMana * 100;
+            string manaColor = "lime";
+            if (50 < currentManaPercent && currentManaPercent < 70)
+                manaColor = "yellow";
+            if (30 < currentManaPercent && currentManaPercent < 50)
+                manaColor = "orange";
+            if (currentManaPercent <= 30)
+                manaColor = "red";
             if (currentMana == 0)
                 message += "You have no mana!<br>";
             else
-                message += $"[{currentMana}/{maxMana}] {(double)currentMana / maxMana * 100:0}%";
-            int manaBars = Math.Min((int) Math.Ceiling((double) maxMana / manaPerBar), 1);
-            for (int i = 0; i < manaBars; i++)
-            {
-                if (currentMana > 0)
-                {
-                    int manaInBar = Math.Min(currentMana, manaPerBar);
-                    currentMana -= manaInBar;
-                    message += "[" + new String(manaCharacter, manaInBar) + new String(missingManaCharacter, manaPerBar - manaInBar) + "]";
-                }
-                else
-                {
-                    message += "[" + new String(missingManaCharacter, manaPerBar) + "]";
-                }
+                message += $"<font color=\"{manaColor}\">[{currentMana}/{maxMana}] {(double)currentMana / maxMana * 100:0}%</font><br>";
 
-                message += "<br>";
-            }            
+            List<string> bars = new();
+            while (currentMana > 0)
+            {
+                int barSize = Math.Min(manaPerBar, currentMana);
+                currentMana -= barSize;
+                maxMana -=  barSize;
+                bars.Add(new String(manaCharacter, barSize));                
+            }
+
+            // if (bars.Last().Length < manaPerBar)
+            // {
+            //     var missingManaLength = Math.Min(manaPerBar, maxMana);
+            //     missingManaLength = Math.Min(missingManaLength, manaPerBar - bars.Last().Length);
+            //     maxMana -= missingManaLength;
+            //     var previousBar = bars.Last() + new String(missingManaCharacter, missingManaLength);
+            //     bars.Remove(bars.Last());
+            //     bars.Add(previousBar);
+            // }
+            // while (maxMana > 0)
+            // {
+            //     int barSize = Math.Min(manaPerBar, maxMana);
+            //     maxMana -=  barSize;
+            //     bars.Add(new String(missingManaCharacter, barSize));
+            // }
+
+            foreach (var bar in bars)
+                message += $"[{bar}]<br>";
         }
         
         player.PrintToCenterHtml(message); 
