@@ -3,6 +3,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using Dndcs2.constants;
 using static Dndcs2.DndClasses.SharedClassFeatures;
+using static Dndcs2.messages.DndMessages;
 using PlayerStatRating = Dndcs2.stats.PlayerBaseStats.PlayerStatRating;
 using Dndcs2.dtos;
 using Dndcs2.events;
@@ -28,7 +29,8 @@ public class Cleric : DndBaseClass
         base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Cleric,new Collection<DndClassRequirement>())
     {
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
-            new ClericSpawn()
+            new ClericSpawn(),
+            new HealingWord(),
         });
     }
     
@@ -58,8 +60,59 @@ public class Cleric : DndBaseClass
                 var clericLevel = CommonMethods.RetrievePlayerClassLevel(player);
 
                 AddFullCasterMana(clericLevel, playerStats, dndPlayer);  
+                MessagePlayer(player, "Healing Word: Your shots will heal allies as long as you have mana on a 1-for-1 basis");
+                MessagePlayer(player, "Healing Word:     Lowest value between their missing HP, your mana, and 20");
             });            
             return HookResult.Continue;
+        }
+    }
+    
+    public class HealingWord : EventCallbackFeature<EventPlayerHurt>
+    {
+        public HealingWord() : 
+            base(false, EventCallbackFeaturePriority.Medium, HookMode.Pre, PlayerHurtPre, 
+                constants.DndClass.Cleric, null)
+        {
+            
+        }
+
+        public static HookResult PlayerHurtPre(EventPlayerHurt @event, GameEventInfo info, DndPlayer dndPlayerVictim,
+            DndPlayer dndPlayerAttacker)
+        {
+            var attacker = @event.Attacker;
+            var victim = @event.Userid;
+            var attackerClassEnum = (constants.DndClass) dndPlayerAttacker.DndClassId;
+            
+            if(attackerClassEnum != constants.DndClass.Cleric )
+                return HookResult.Continue;
+            
+            if (attacker.Team != victim.Team)
+                return HookResult.Continue;
+
+            var playerStats = PlayerStats.GetPlayerStats(attacker);
+            if (playerStats.Mana > 0)
+            {
+                var victimStats = PlayerStats.GetPlayerStats(victim);
+                var healing = Math.Min(playerStats.Mana, @event.DmgHealth);
+                
+                @event.Health += @event.DmgHealth;
+                victim.PlayerPawn.Value.Health = @event.Health;
+                @event.DmgHealth = 0;
+                
+                healing = Math.Min(victimStats.MaxHealth - victim.PlayerPawn.Value.Health, healing);
+                healing = Math.Min(20, healing);                
+                
+                if (healing < 1)
+                    return HookResult.Continue;
+                
+                victimStats.ChangeHealth(healing);
+
+                MessagePlayer(attacker, $"You healed {victim.PlayerName} for {healing}HP!");
+                MessagePlayer(victim, $"{attacker.PlayerName} healed you for {healing}HP!");
+                playerStats.ChangeMana(-healing);
+            }
+
+            return HookResult.Changed;
         }
     }
 }

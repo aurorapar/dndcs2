@@ -33,13 +33,13 @@ public class TestDamage : DndCommand
 
     public void DoDamage(CCSPlayerController player, List<string> args)
     {
-        int damage = Int32.Parse(args[0]);
+        //int damage = Int32.Parse(args[0]);
         foreach (var enemy in Utilities.GetPlayers())
         {
-            if (enemy.Team == player.Team)
+            if (enemy.Team != player.Team)
                 continue;
-            Dndcs2.DamageTarget(enemy, player, damage, damageType: DamageTypes_t.DMG_RADIATION);
-            break;
+            
+            Dndcs2.DamageTarget(player, enemy, new Random().Next(1,50), damageType: DamageTypes_t.DMG_RADIATION);
         }
         
     }

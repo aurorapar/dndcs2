@@ -137,6 +137,7 @@ public class PlayerBaseStats
     public void ChangeMana(int amount, float? duration = null)
     {
         Mana = Math.Min(MaxMana, Mana + amount);
+        Mana = Math.Max(Mana, 0);
         if (duration.HasValue)
         {
             new GenericTimer(duration.Value, duration.Value, 1, () =>
