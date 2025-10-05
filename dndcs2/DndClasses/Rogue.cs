@@ -56,8 +56,10 @@ public class Rogue : DndBaseClass
                 if ((constants.DndClass)dndPlayer.DndClassId != constants.DndClass.Rogue)
                     return;                
                 var playerStats = PlayerStats.GetPlayerStats(dndPlayer);
-                MessagePlayer(player, $"You gained 20% bonus speed for being a {constants.DndClass.Rogue}");
+                var rogueLevel = CommonMethods.RetrievePlayerClassLevel(player);
+                MessagePlayer(player, $"Dash: You gained 20% bonus speed for being a {constants.DndClass.Rogue}");
                 playerStats.ChangeSpeed(.2f);
+                MessagePlayer(player, $"Sneak Attack: Attacking enemies from behind deals {Math.Max(1, rogueLevel/2)}d6 bonus damage");
             });            
             return HookResult.Continue;
         }
