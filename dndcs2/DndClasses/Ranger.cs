@@ -35,7 +35,7 @@ public class Ranger : DndBaseClass
     {
         public ZephyrStrike() : 
             base(false, EventCallbackFeaturePriority.Medium, HookMode.Pre, PlayerHurtPre, 
-                constants.DndClass.Fighter, null)
+                constants.DndClass.Ranger, null)
         {
             
         }

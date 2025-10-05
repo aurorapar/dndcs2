@@ -16,8 +16,8 @@ public class GetPlayerTarget : DndCommand
     {
         if (player == null)
             return;
-        
-        Dndcs2.GetViewPlayer(player);  
+
+        Logic(player);
     }
 
     public override HookResult ChatHandler(EventPlayerChat @event, GameEventInfo info)
@@ -25,7 +25,18 @@ public class GetPlayerTarget : DndCommand
         var player = Utilities.GetPlayerFromUserid(@event.Userid);
         if(player == null)
             return HookResult.Continue;
-        Dndcs2.GetViewPlayer(player); 
+
+        Logic(player);
+        
         return HookResult.Continue;
+    }
+
+    public static void Logic(CCSPlayerController player)
+    {
+        var rogueAngle = player.PlayerPawn.Value.EyeAngles;
+        var angle = rogueAngle.Y;
+        if (angle < 0)
+            angle += 360;
+        Dndcs2.Instance.Log.LogInformation($"{angle}");
     }
 }

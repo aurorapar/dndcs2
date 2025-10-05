@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using Dndcs2.constants;
+using Dndcs2.dice;
 using static Dndcs2.messages.DndMessages;
 using PlayerStatRating = Dndcs2.stats.PlayerBaseStats.PlayerStatRating;
 using Dndcs2.dtos;
@@ -28,7 +29,8 @@ public class Rogue : DndBaseClass
         base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Rogue,new Collection<DndClassRequirement>())
     {
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
-            new RogueSpawn()
+            new RogueSpawn(),
+            new SneakAttack(),
         });
     }    
     
@@ -58,6 +60,50 @@ public class Rogue : DndBaseClass
                 playerStats.ChangeSpeed(.2f);
             });            
             return HookResult.Continue;
+        }
+    }
+    
+    public class SneakAttack : EventCallbackFeature<EventPlayerHurt>
+    {
+        public SneakAttack() : 
+            base(false, EventCallbackFeaturePriority.Medium, HookMode.Pre, PlayerHurtPre, 
+                constants.DndClass.Rogue, null)
+        {
+            
+        }
+
+        public static HookResult PlayerHurtPre(EventPlayerHurt @event, GameEventInfo info, DndPlayer dndPlayerVictim,
+            DndPlayer dndPlayerAttacker)
+        {
+            var attacker = @event.Attacker;
+            var victim = @event.Userid;
+            var attackerClassEnum = (constants.DndClass) dndPlayerAttacker.DndClassId;
+            
+            if(attackerClassEnum != constants.DndClass.Rogue )
+                return HookResult.Continue;
+            
+            if (attacker.Team == victim.Team)
+                return HookResult.Continue;
+            
+            var weapon = Dndcs2.GetPlayerWeapon(attacker);
+            if(weapon == null)
+                return HookResult.Continue;
+
+            var rogueLevel = CommonMethods.RetrievePlayerClassLevel(attacker);
+
+            var rogueAngle = attacker.PlayerPawn.Value.EyeAngles;
+            var victimAngle = victim.PlayerPawn.Value.EyeAngles;
+
+            var diff = rogueAngle.Y - victimAngle.Y;
+            diff = Math.Abs((diff + 180) % 360 - 180);
+            if (diff <= 90)
+            {
+                var dieRoll = new DieRoll(sides: 6, amount: Math.Max(1, rogueLevel / 2));
+                MessagePlayer(attacker, $"Your sneak attack did {dieRoll.Result} bonus damage!");
+                Dndcs2.UpdatePrehookDamage(@event, (int) (@event.DmgHealth + dieRoll.Result));
+            }
+            
+            return HookResult.Changed;
         }
     }
 }

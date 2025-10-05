@@ -16,7 +16,7 @@ public partial class Dndcs2
         new DndPlayerInfo();
         new DndXpLog();
         new Weapons();
-        RegisterAbilities();
+        RegisterAbilities();;
     }
 }
 
