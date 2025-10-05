@@ -17,10 +17,6 @@ public partial class Dndcs2
         new DndXpLog();
         new Weapons();
         RegisterAbilities();
-
-        new TestDamage();
-        new GetHealth();
-        new Teleport();
     }
 }
 
@@ -46,6 +42,8 @@ public abstract class DndCommand
             if (player == null) return;
             CommandHandler(player, info);
         });
+        
+        Dndcs2.Instance.Log.LogInformation("Registered command " + GetType().Name + " as " + CommandName);
         
     }
 

@@ -102,7 +102,9 @@ public class PlayerDeath : DndEvent<EventPlayerDeath>
                 else if (@event.Weapon.ToLower().Contains("grenade"))
                     GrantPlayerExperience(dndPlayerAttacker, Dndcs2.GrenadeXP.Value, Dndcs2.GrenadeXP.Description,
                         GetType().Name);
-
+                
+                if(!KillStreakTracker.ContainsKey(victim))
+                    KillStreakTracker[victim] = 0;
                 if (KillStreakTracker[victim] >= 3)
                 {
                     GrantPlayerExperience(dndPlayerAttacker, Dndcs2.BountyXP.Value,

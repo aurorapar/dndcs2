@@ -27,8 +27,6 @@ public abstract class DndAbility : DndCommand
         LimitedUses = limitedUses;
         AbilityCooldown = abilityCooldown;
         SpecieLimitedUses = specieLimitedUses;
-        
-        Dndcs2.Instance.Log.LogInformation("Registered ability " + GetType().Name + " as " + CommandName);
     }
     
     public static void RegisterAbilities()

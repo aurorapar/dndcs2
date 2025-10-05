@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <OutDir>\\192.168.1.142\cs2ds\game\csgo\addons\counterstrikesharp\plugins\dndcs2</OutDir>
+      <OutDir>\\192.168.1.142\cs2dsdev\game\csgo\addons\counterstrikesharp\plugins\dndcs2</OutDir>
     </PropertyGroup>
 
     <ItemGroup>

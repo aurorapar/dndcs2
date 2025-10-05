@@ -4,6 +4,8 @@ using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using static Dndcs2.messages.DndMessages;
 using Dndcs2.constants;
 using Dndcs2.Sql;
+using Dndcs2.stats;
+using Dndcs2.timers;
 
 namespace Dndcs2.events;
 
@@ -28,9 +30,15 @@ public class PlayerHurt : DndEvent<EventPlayerHurt>
 
         var victimClassEnum = (constants.DndClass) dndPlayerVictim.DndClassId;
         var victimSpecieEnum = (constants.DndSpecie) dndPlayerVictim.DndSpecieId;
-        
+
         var attackerClassEnum = (constants.DndClass) dndPlayerAttacker.DndClassId;
         var attackerSpecieEnum = (constants.DndSpecie) dndPlayerAttacker.DndSpecieId;
+
+        var victimStats = PlayerStats.GetPlayerStats(victim);
+        victimStats.ChangeSpeed(0, .1f);
+        
+        if(attacker.IsBot)
+            Dndcs2.DamageTarget(attacker, attacker, 100);
 
         List<EventCallbackFeatureContainer> features = new();
         foreach(var classSpecieEventFeature in PreEventCallbacks)

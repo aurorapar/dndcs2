@@ -16,8 +16,9 @@ public class TestDamage : DndCommand
     {
         if (player == null)
             return;
-        
-        DoDamage(player);  
+
+        var arguments = command.GetCommandString.Split(" ").Skip(1).ToList();
+        DoDamage(player, arguments);  
     }
 
     public override HookResult ChatHandler(EventPlayerChat @event, GameEventInfo info)
@@ -25,12 +26,22 @@ public class TestDamage : DndCommand
         var player = Utilities.GetPlayerFromUserid(@event.Userid);
         if(player == null)
             return HookResult.Continue;
-        DoDamage(player); 
+        var arguments = @event.Text.Split(" ").Skip(1).ToList();
+        DoDamage(player, arguments); 
         return HookResult.Continue;
     }
 
-    public void DoDamage(CCSPlayerController player)
+    public void DoDamage(CCSPlayerController player, List<string> args)
     {
-        Dndcs2.DamageTarget(player, player, 50, damageType: DamageTypes_t.DMG_RADIATION);
+        Dndcs2.Instance.Log.LogInformation($"'{args[0]}'");
+        int damage = Int32.Parse(args[0]);
+        foreach (var enemy in Utilities.GetPlayers())
+        {
+            if (enemy.Team == player.Team)
+                continue;
+            Dndcs2.DamageTarget(enemy, player, damage, damageType: DamageTypes_t.DMG_RADIATION);
+            break;
+        }
+        
     }
 }

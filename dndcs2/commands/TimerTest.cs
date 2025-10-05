@@ -2,12 +2,14 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
+using Dndcs2.timers;
+using static Dndcs2.messages.DndMessages;
 
 namespace Dndcs2.commands;
 
-public class TestDamage : DndCommand
+public class TimerTest : DndCommand
 {
-    public TestDamage() : base("testdamage", "testing damage stuff")
+    public TimerTest() : base("timertest", "testing timer")
     {
         
     }
@@ -17,7 +19,7 @@ public class TestDamage : DndCommand
         if (player == null)
             return;
         
-        DoDamage(player);  
+        DoTest(player);  
     }
 
     public override HookResult ChatHandler(EventPlayerChat @event, GameEventInfo info)
@@ -25,12 +27,12 @@ public class TestDamage : DndCommand
         var player = Utilities.GetPlayerFromUserid(@event.Userid);
         if(player == null)
             return HookResult.Continue;
-        DoDamage(player); 
+        DoTest(player); 
         return HookResult.Continue;
     }
 
-    public void DoDamage(CCSPlayerController player)
+    public void DoTest(CCSPlayerController player)
     {
-        Dndcs2.DamageTarget(player, player, 50, damageType: DamageTypes_t.DMG_RADIATION);
+        new GenericTimer(1, 1, 1, () => BroadcastMessage(Guid.NewGuid().ToString()));
     }
 }

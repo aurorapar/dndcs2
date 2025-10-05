@@ -150,12 +150,17 @@ public class PlayerBaseStats
     {
         Speed += amount;
         var player = Utilities.GetPlayerFromUserid(Userid);
-        
-        Server.NextFrame(() => player.PlayerPawn.Value.VelocityModifier = (float) Speed);
+        Server.NextFrame(() =>
+        {
+            player.PlayerPawn.Value.VelocityModifier = (float)Speed;
+            player.PlayerPawn.Value.MovementServices.Maxspeed = 260 * (float)Speed;
+        });
         if (duration.HasValue)
         {
+            Dndcs2.Instance.Log.LogInformation($"Starting speed timer");
             new GenericTimer(duration.Value, duration.Value, 1, () =>
             {
+                Dndcs2.Instance.Log.LogInformation($"Reverting speed to {Speed + (-1 * amount)}");
                 ChangeSpeed(-1 * amount);
             });
         }        

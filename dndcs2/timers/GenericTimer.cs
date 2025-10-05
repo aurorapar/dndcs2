@@ -13,6 +13,7 @@ public class GenericTimer : DndTimer
 
     public override void Fire()
     {
+        Dndcs2.Instance.Log.LogInformation("Should have fired a timer callback");
         _callback();
     }
 }

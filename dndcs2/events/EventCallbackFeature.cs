@@ -6,6 +6,7 @@ using Dndcs2.constants;
 using Dndcs2.DndClasses;
 using Dndcs2.DndSpecies;
 using Dndcs2.dtos;
+using Dndcs2.timers;
 using DndClass = Dndcs2.constants.DndClass;
 using DndSpecie = Dndcs2.constants.DndSpecie;
 
@@ -25,6 +26,7 @@ public abstract class EventCallbackFeature<T> : EventCallbackFeatureContainer
     {
         nameof(DndBaseClass.AllClassesSpawn),
         nameof(DndBaseSpecie.AllSpeciesSpawn),        
+        nameof(DndTimer.ListenerRemover),        
     };
 
     public EventCallbackFeature(bool overrideDefaultBehavior, EventCallbackFeaturePriority callbackFeaturePriority,
@@ -47,7 +49,6 @@ public abstract class EventCallbackFeature<T> : EventCallbackFeatureContainer
 
         BaseEvent = DetermineBaseEvent();
         AddClassSpecieFeatureEvent();        
-        Dndcs2.Instance.Log.LogInformation($"Registed EventCallbackFeature {GetType().Name}");
     }
 
     private DndEvent<T> DetermineBaseEvent()
