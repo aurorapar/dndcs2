@@ -12,16 +12,18 @@ public abstract class DndAbility : DndCommand
 {
     private List<AbilityClassSpecieRequirement> ClassSpecieRequirements = new();
     
+    public string Name { get; set; }
     public int ManaCost { get; } = 0;
     public int? LimitedUses { get; } = null;
     private double AbilityCooldown = .1;
     public int? SpecieLimitedUses { get; private set; }
     public static Dictionary<string, DndAbility> DndAbilities = new();
     
-    public DndAbility(List<AbilityClassSpecieRequirement> requirements, int manaCost, int? limitedUses, double abilityCooldown, 
+    public DndAbility(string name, List<AbilityClassSpecieRequirement> requirements, int manaCost, int? limitedUses, double abilityCooldown, 
         int? specieLimitedUses, string commandName, string commandDescription) : 
         base(commandName, commandDescription)
     {
+        Name = name;
         ClassSpecieRequirements = requirements;
         ManaCost = manaCost;
         LimitedUses = limitedUses;

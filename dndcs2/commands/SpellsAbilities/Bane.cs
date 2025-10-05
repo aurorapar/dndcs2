@@ -9,6 +9,7 @@ public class Bane : DndAbility
 {
     public Bane() : 
         base(
+            "Bane",
             new List<AbilityClassSpecieRequirement>()
             {
                 ClassSpecieAbilityRequirementFactory.ClassSpecieAbilityRequirement(constants.DndClass.Cleric, 3),

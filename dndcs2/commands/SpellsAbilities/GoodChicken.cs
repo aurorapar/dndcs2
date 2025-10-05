@@ -14,6 +14,7 @@ public class GoodChicken : DndAbility
 {
     public GoodChicken() : 
         base(
+            "Good Chicken",
             new List<AbilityClassSpecieRequirement>()
             {
                 ClassSpecieAbilityRequirementFactory.ClassSpecieAbilityRequirement(constants.DndClass.Druid),

@@ -119,7 +119,8 @@ public partial class Dndcs2
         MenuManager.CloseActiveMenu(player);
         Server.NextFrame(() =>
         {
-            player.PrintToCenterHtml(GetPlayerStats(target, dndPlayer).Replace("\n", "<br>")); 
+            var stats = GetPlayerStats(target, dndPlayer).Replace("\n", "<br>");
+            player.PrintToCenterHtml(stats); 
         });
     }
     

@@ -158,8 +158,7 @@ public abstract class DndBaseClass : DndClass
                 var classLevel = CommonMethods.RetrievePlayerClassLevel(player);
                 var playerStats = PlayerStats.GetPlayerStats(player);
 
-                MessagePlayer(player,
-                    $"You have a good {playerClass.GoodStat} and average {playerClass.AverageStat} as a {playerClassName}");
+                MessagePlayer(player,$"You have a good {playerClass.GoodStat} and average {playerClass.AverageStat} as a {playerClassName}");
                 playerStats.SetGoodStat(playerClass.GoodStat);
                 playerStats.SetAverageStat(playerClass.AverageStat);
                 
@@ -169,7 +168,7 @@ public abstract class DndBaseClass : DndClass
                 MessagePlayer(player,
                     $"You gained {bonusHealth} bonus health for being a Level {classLevel} {(constants.DndClass)dndPlayer.DndClassId}");
                 playerStats.ChangeMaxHealth(bonusHealth);
-                ShowSpells(player, dndPlayer, playerStats);
+                ShowSpells(player, dndPlayer, playerStats, true);
             });
             return HookResult.Continue;
         }

@@ -139,20 +139,17 @@ public abstract class DndBaseSpecie : DndSpecie
                 var playerStats = PlayerStats.GetPlayerStats(player);
                 var dndPlayer = CommonMethods.RetrievePlayer(player);
 
-                var playerSpecie = dndPlayer.DndSpecieId;
-
                 foreach (var spellAbilityKvp in DndAbility.DndAbilities)
                 {
                     var ability = spellAbilityKvp.Value;
+                    if (ability.ManaCost < 1)
+                        continue;
                     if (!ability.CheckClassSpecieRequirements(player))
                         continue;
-                    
-                    if(ability.IsCastingWithSpecie(playerStats, player))
-                        MessagePlayer(player,$"You have {ability.SpecieLimitedUses} uses of {ability.CommandName} as a(n) {(constants.DndSpecie)playerSpecie} ({ability.CommandDescription})");
-                    else if(ability.ManaCost > 0 && ability.GetClassSpecieRequirements().Any(r => r.DndClass == null && r.DndSpecie != null))
+                    if(!ability.IsCastingWithSpecie(playerStats, player) && ability.GetClassSpecieRequirements().Where(r => r.DndClass == null && (int) r.DndSpecie == dndPlayer.DndSpecieId).Any())
                     {
-                        playerStats.ChangeMana(ability.ManaCost);
-                        MessagePlayer(player,$"You have been given {ability.ManaCost} Mana because your class already has {ability.CommandName}");
+                        playerStats.ChangeMaxMana(ability.ManaCost);
+                        MessagePlayer(player,$"You have been given {ability.ManaCost} Mana because {(constants.DndClass) dndPlayer.DndClassId} already has {ability.CommandName}");
                     }
                 }
             });

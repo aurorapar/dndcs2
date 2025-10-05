@@ -11,6 +11,7 @@ public class ColorSpray : DndAbility
 {
     public ColorSpray() : 
         base(
+            "Color Spray",
             new List<AbilityClassSpecieRequirement>()
             {
                 ClassSpecieAbilityRequirementFactory.ClassSpecieAbilityRequirement(constants.DndClass.Wizard),

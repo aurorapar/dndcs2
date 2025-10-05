@@ -35,10 +35,7 @@ public class PlayerHurt : DndEvent<EventPlayerHurt>
         var attackerSpecieEnum = (constants.DndSpecie) dndPlayerAttacker.DndSpecieId;
 
         var victimStats = PlayerStats.GetPlayerStats(victim);
-        victimStats.ChangeSpeed(0, .1f);
-        
-        if(attacker.IsBot)
-            Dndcs2.DamageTarget(attacker, attacker, 100);
+        victimStats.ChangeSpeed(0, .02f);
 
         List<EventCallbackFeatureContainer> features = new();
         foreach(var classSpecieEventFeature in PreEventCallbacks)

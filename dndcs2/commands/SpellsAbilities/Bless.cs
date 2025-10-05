@@ -8,6 +8,7 @@ public class Bless : DndAbility
 {
     public Bless() : 
         base(
+            "Bless",
             new List<AbilityClassSpecieRequirement>()
             {
                 ClassSpecieAbilityRequirementFactory.ClassSpecieAbilityRequirement(constants.DndClass.Cleric),

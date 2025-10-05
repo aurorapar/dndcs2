@@ -14,6 +14,7 @@ public class FaerieFire : DndAbility
 {
     public FaerieFire() : 
         base(
+            "Faerie Fire",
             new List<AbilityClassSpecieRequirement>()
             {
                 ClassSpecieAbilityRequirementFactory.ClassSpecieAbilityRequirement(constants.DndClass.Ranger),

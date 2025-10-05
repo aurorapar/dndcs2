@@ -9,6 +9,13 @@ namespace Dndcs2.DndClasses;
 
 public class SharedClassFeatures
 {
+    private static List<string> _hiddenAbilities = new List<string>()
+    {
+        "!mana",
+        "!spells",
+        "!abilities"
+    };
+    
     public static void AddHalfCasterMana(int level, PlayerBaseStats playerStats, DndPlayer dndPlayer)
     {
         Dndcs2.Instance.Log.LogInformation($"Gave mana to {dndPlayer.DndPlayerAccountId}");
@@ -32,28 +39,52 @@ public class SharedClassFeatures
             $"You have {playerStats.Mana} mana for being a Level {level} {(constants.DndClass) dndPlayer.DndClassId} (Check current mana with !mana)");
     }
 
-    public static void ShowSpells(CCSPlayerController player, DndPlayer dndPlayer, PlayerBaseStats playerStats)
+    public static Dictionary<string, Tuple<string, string, string>> ShowSpells(CCSPlayerController player, DndPlayer dndPlayer, PlayerBaseStats playerStats, bool print=false)
     {
-        var spellList = new List<string>();
+        var spellBook = new Dictionary<string, Tuple<string, string, string>>();
+        
         foreach (var spellAbilityKvp in DndAbility.DndAbilities)
         {
             var ability = spellAbilityKvp.Value;
-            if (ability.CheckClassSpecieRequirements(player) && !ability.IsCastingWithSpecie(playerStats, player) && ability.CommandName != "!abilities")
-                spellList.Add(
-                    $"{ability.CommandName.Replace("!spells", "!spells/!abilities")} - "
-                    + (ability.ManaCost > 0 ? ability.ManaCost.ToString() : "No") + " Mana" 
-                    + (ability.SpecieLimitedUses != null ? $"/{ability.SpecieLimitedUses?.ToString()}" + " daily uses " : "")
-                    + " - "
-                    + (ability.LimitedUses != null ? $"{ability.LimitedUses?.ToString()}" + " uses " : "")
-                    + ability.CommandDescription);                
+            if (_hiddenAbilities.Contains(ability.CommandName))
+                continue;
+
+            if (ability.CheckClassSpecieRequirements(player))
+            {
+                var abilityCost = $"";
+                if (ability.ManaCost > 0)
+                {
+                    if (ability.IsCastingWithSpecie(playerStats, player))
+                        abilityCost = $"{ability.SpecieLimitedUses} Daily Uses ({(constants.DndSpecie)dndPlayer.DndSpecieId})";
+                    else
+                        abilityCost = $"{ability.ManaCost} Mana";                    
+                }
+                if(ability.LimitedUses.HasValue && ability.LimitedUses.Value > 0)
+                    abilityCost += abilityCost.Length > 0 ? " - " : "" + $"{ability.LimitedUses.Value} Daily Uses";
+                
+
+                spellBook[ability.Name] = new Tuple<string, string, string>(
+                    ability.CommandName,
+                    abilityCost, 
+                    ability.CommandDescription);
+            }
         }
 
-        if (spellList.Any())
+        if (spellBook.Any() && print)
         {
             MessagePlayer(player,
                 $"Your {(constants.DndClass)dndPlayer.DndClassId} Spell List (check with !spells): ");
-            foreach (var spell in spellList)
-                MessagePlayer(player, spell);
+            foreach (var spell in spellBook)
+            {
+                string output = $"{spell.Key}";
+                output += $" - {spell.Value.Item1}";
+                if (spell.Value.Item1.Length > 0)
+                    output += $" - {spell.Value.Item2}";
+                output +=  $" - {spell.Value.Item3}";
+                MessagePlayer(player, output);
+            }
         }
+        
+        return spellBook;
     }
 }

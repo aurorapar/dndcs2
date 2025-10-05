@@ -1,4 +1,5 @@
 ﻿using CounterStrikeSharp.API.Core;
+using Dndcs2.menus;
 using Dndcs2.Sql;
 using Dndcs2.stats;
 using DndClass = Dndcs2.constants.DndClass;
@@ -14,6 +15,7 @@ public class Spells : DndAbility
         .ToList();
     public Spells() : 
         base(
+            "",
             _allClasses, 
             0, 
             null, 
@@ -27,7 +29,8 @@ public class Spells : DndAbility
 
     public override bool UseAbility(CCSPlayerController player, PlayerBaseStats playerStats, List<string> arguments)
     {
-        ShowSpells(player, CommonMethods.RetrievePlayer(player), playerStats);
+        var spellbook = new SpellMenu(player, CommonMethods.RetrievePlayer(player), playerStats);
+        spellbook.Display(player, 10);
         return true;
     }
 }
