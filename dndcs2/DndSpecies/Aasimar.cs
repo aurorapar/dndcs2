@@ -18,36 +18,7 @@ public class Aasimar : DndBaseSpecie
     {
         DndClassSpecieEvents.AddRange(new List<EventCallbackFeatureContainer>()
         {
-            new AasimarSpawn()
-        });
-    }
-    
-    public class AasimarSpawn : EventCallbackFeature<EventPlayerSpawn>
-    {
-        public AasimarSpawn() : 
-            base(false, EventCallbackFeaturePriority.Medium, HookMode.Post, PlayerPostSpawn, 
-                null, constants.DndSpecie.Aasimar)
-        {
             
-        }
-
-        public static HookResult PlayerPostSpawn(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer,
-            DndPlayer? dndPlayerAttacker)
-        {
-            var userid = (int)@event.Userid.UserId;
-            Server.NextFrame(() =>
-            {
-                var player = Utilities.GetPlayerFromUserid(userid);
-                if (player == null)
-                    return;
-                var dndPlayer = CommonMethods.RetrievePlayer(player);
-                if ((constants.DndSpecie)dndPlayer.DndSpecieId != constants.DndSpecie.Aasimar)
-                    return;
-                
-                if(dndPlayer.DndClassId != (int) constants.DndClass.Cleric)
-                    MessagePlayer(player, $"Blessed: You may use !bless as an {constants.DndSpecie.Aasimar}");
-            });
-            return HookResult.Continue;
-        }
+        });
     }
 }

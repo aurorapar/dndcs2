@@ -45,6 +45,7 @@ public abstract class DndAbility : DndCommand
             new Bane(),
             new GoodChicken(),
             new FaerieFire(),
+            new FogCloud(),
         };
         foreach (var spell in spells)
         {

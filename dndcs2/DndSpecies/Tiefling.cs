@@ -17,38 +17,7 @@ public class Tiefling : DndBaseSpecie
     {
         DndClassSpecieEvents.AddRange(new List<EventCallbackFeatureContainer>()
         {
-            new TieflingSpawn()
-        });
-    }
-    
-    public class TieflingSpawn : EventCallbackFeature<EventPlayerSpawn>
-    {
-        public TieflingSpawn() : 
-            base(false, EventCallbackFeaturePriority.Medium, 
-                HookMode.Post, SpawnPost, null, constants.DndSpecie.Human)
-        {
             
-        }
-
-        public static HookResult SpawnPost(EventPlayerSpawn @event, GameEventInfo info, DndPlayer dndPlayer, DndPlayer? dndPlayerAttacker)
-        {
-            if (@event.Userid == null || @event.Userid.ControllingBot)
-                return HookResult.Continue;
-
-            var userid = (int)@event.Userid.UserId;
-            Server.NextFrame(() =>
-            {
-                var player = Utilities.GetPlayerFromUserid(userid);
-                if (player == null)
-                    return;
-                var dndPlayer = CommonMethods.RetrievePlayer(player);
-                if ((constants.DndSpecie)dndPlayer.DndSpecieId != constants.DndSpecie.Tiefling)
-                    return;
-                
-                if(dndPlayer.DndClassId != (int) constants.DndClass.Cleric)
-                    MessagePlayer(player, $"Cursed: You may use !bane as an {constants.DndSpecie.Tiefling}");
-            });
-            return HookResult.Continue;
-        }
+        });
     }
 }

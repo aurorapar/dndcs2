@@ -387,7 +387,7 @@ public partial class Dndcs2
         return false;
     }
 
-    public static void SpawnSmokeGrenade(Vector position, QAngle angle, Vector velocity, CsTeam team)
+    public static void SpawnSmokeGrenade(Vector position, QAngle angle, Vector velocity, CsTeam team, bool detonateImmediately = false)
     {
         var grenade = CSmokeGrenadeProjectile_CreateFunc.Invoke(
             position!.Handle,
@@ -397,9 +397,13 @@ public partial class Dndcs2
             IntPtr.Zero,
             45,
             (int)team);
+        
+        if (detonateImmediately)
+            grenade.DetonateTime = 0;
+        
     }
     
-    public static CMolotovProjectile SpawnMolotovGrenade(Vector position, QAngle angle, Vector velocity, CsTeam team)
+    public static CMolotovProjectile SpawnMolotovGrenade(Vector position, QAngle angle, Vector velocity, CsTeam team, bool detonateImmediately = false)
     {
         var grenade = CMolotovProjectile_CreateFunc.Invoke(
             position!.Handle,
@@ -423,6 +427,10 @@ public partial class Dndcs2
         grenade.AngVelocity.Y = velocity.Y;
         grenade.AngVelocity.Z = velocity.Z;
         grenade.TeamNum = (byte)team;
+        
+        if (detonateImmediately)
+            grenade.DetonateTime = 0;
+        
         return grenade;
     }
     
@@ -505,9 +513,7 @@ public partial class Dndcs2
         grenade.TeamNum = (byte)team;
             
         if (detonateImmediately)
-        {
             grenade.DetonateTime = 0;
-        }
             
         grenade.TeamNum = (byte)team;     
     }
