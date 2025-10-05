@@ -37,8 +37,6 @@ public class GoodChicken : DndAbility
             MessagePlayer(player, "Couldn't spawn the chicken, you have been given your mana back");
             return false;
         }
-        
-        Dndcs2.Instance.Log.LogInformation($"Original location {location}");
 
         location.Z += 50;
         

@@ -33,7 +33,6 @@ public class TestDamage : DndCommand
 
     public void DoDamage(CCSPlayerController player, List<string> args)
     {
-        Dndcs2.Instance.Log.LogInformation($"'{args[0]}'");
         int damage = Int32.Parse(args[0]);
         foreach (var enemy in Utilities.GetPlayers())
         {

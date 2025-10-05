@@ -157,10 +157,8 @@ public class PlayerBaseStats
         });
         if (duration.HasValue)
         {
-            Dndcs2.Instance.Log.LogInformation($"Starting speed timer");
             new GenericTimer(duration.Value, duration.Value, 1, () =>
             {
-                Dndcs2.Instance.Log.LogInformation($"Reverting speed to {Speed + (-1 * amount)}");
                 ChangeSpeed(-1 * amount);
             });
         }        

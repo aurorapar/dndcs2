@@ -37,7 +37,6 @@ public class PlayerBlind : DndEvent<EventPlayerBlind>
             
             if ((int)victim.Team == attacker.TeamNum)
             {
-                Dndcs2.Instance.Log.LogInformation("Should have stopped event");
                 Dndcs2.UnblindPlayer(victim);
                 return HookResult.Stop;
             }
