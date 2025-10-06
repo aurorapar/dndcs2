@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Events;
+using static Dndcs2.messages.DndMessages;
 
 namespace Dndcs2.commands;
 
@@ -33,14 +34,17 @@ public class TestDamage : DndCommand
 
     public void DoDamage(CCSPlayerController player, List<string> args)
     {
-        //int damage = Int32.Parse(args[0]);
-        foreach (var enemy in Utilities.GetPlayers())
-        {
-            if (enemy.Team != player.Team)
-                continue;
-            
-            Dndcs2.DamageTarget(player, enemy, new Random().Next(1,50), damageType: DamageTypes_t.DMG_RADIATION);
-        }
+        int damage = Int32.Parse(args[0]);
+        Dndcs2.DamageTarget(player, player, damage, damageType: DamageTypes_t.DMG_RADIATION);
+        // foreach (var enemy in Utilities.GetPlayers())
+        // {
+        //     if (enemy.Team != player.Team)
+        //         continue;
+        //     
+        //     Dndcs2.DamageTarget(player, enemy, new Random().Next(1,50), damageType: DamageTypes_t.DMG_RADIATION);
+        // }
         
+        
+
     }
 }

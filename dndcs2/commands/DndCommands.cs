@@ -18,7 +18,7 @@ public partial class Dndcs2
         new Weapons();
         RegisterAbilities();
 
-        // new TestDamage();
+        //new TestDamage();
         // new GetHealth();
     }
 }

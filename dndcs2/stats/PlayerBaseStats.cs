@@ -32,6 +32,9 @@ public class PlayerBaseStats
     public bool Bless;
     public bool Bane;
     public bool FaerieFire;
+    public bool Wildshape;
+    public int WildshapeHealth;
+    public string OriginalModel;
     public int FlurryOfBlows;
     public Dictionary<int, List<string>> MonkHits = new();
     public List<int> FlurryMessages = new();
@@ -61,6 +64,8 @@ public class PlayerBaseStats
         MaxMana = 0;
         Mana = 0;
         FlurryOfBlows = 0;
+        Wildshape = false;
+        OriginalModel = Utilities.GetPlayerFromUserid(Userid).PlayerPawn.Value.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState?.ModelName;
         MonkHits = new();
         FlurryMessages = new();
         if(Speed != 1)

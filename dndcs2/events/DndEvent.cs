@@ -32,6 +32,7 @@ public partial class Dndcs2
             new HostageRescued(),
             new InfernoStartburn(),
             new PlayerBlind(),
+            new ItemEquip(),
         };
     }
 }

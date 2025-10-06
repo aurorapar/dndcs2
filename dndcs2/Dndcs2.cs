@@ -63,6 +63,8 @@ public partial class Dndcs2 : BasePlugin
         RegisterListener<Listeners.OnServerPrecacheResources>((manifest) =>
         {
             manifest.AddResource("models/chicken/chicken_roasted.vmdl");
+            manifest.AddResource("models/chicken/chicken_roasted.vmdl");
+            manifest.AddResource("characters/models/nozb1/trex_noun_player_model/trex_noun_player_model.vmdl");
         });
 
         if (hotReload)
