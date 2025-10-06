@@ -97,6 +97,7 @@ public class Cleric : DndBaseClass
                 
                 @event.Health += @event.DmgHealth;
                 victim.PlayerPawn.Value.Health = @event.Health;
+                Utilities.SetStateChanged(victim.PlayerPawn.Value, "CBaseEntity", "m_iHealth");
                 @event.DmgHealth = 0;
                 
                 healing = Math.Min(victimStats.MaxHealth - victim.PlayerPawn.Value.Health, healing);

@@ -25,14 +25,14 @@ public class Fighter : DndBaseClass
         base(createdBy, createDate, updatedBy, updatedDate, enabled, constants.DndClass.Fighter,new Collection<DndClassRequirement>())
     {
         DndClassSpecieEvents.AddRange( new List<EventCallbackFeatureContainer>() {
-            new ExtraPistolDamage(),
+            new FighterDamageLogic(),
             new AddSnipers(),
         });
     }
     
-    public class ExtraPistolDamage : EventCallbackFeature<EventPlayerHurt>
+    public class FighterDamageLogic : EventCallbackFeature<EventPlayerHurt>
     {
-        public ExtraPistolDamage() : 
+        public FighterDamageLogic() : 
             base(false, EventCallbackFeaturePriority.Medium, HookMode.Pre, PlayerHurtPre, 
                 constants.DndClass.Fighter, null)
         {
@@ -45,6 +45,18 @@ public class Fighter : DndBaseClass
             var attacker = @event.Attacker;
             var victim = @event.Userid;
             var attackerClassEnum = (constants.DndClass) dndPlayerAttacker.DndClassId;
+            var victimClassEnum = (constants.DndClass) dndPlayerVictim.DndClassId;
+
+            if (victimClassEnum == constants.DndClass.Fighter)
+            {
+                var reduction = @event.DmgHealth * .1;
+                reduction = Math.Max(3, reduction);
+                reduction = Math.Min(@event.DmgHealth, reduction);
+                
+                @event.Health += (int) reduction;
+                @event.Userid.PlayerPawn.Value.Health = @event.Health;
+                Utilities.SetStateChanged(victim.PlayerPawn.Value, "CBaseEntity", "m_iHealth");
+            }
             
             if(attackerClassEnum != constants.DndClass.Fighter )
                 return HookResult.Continue;
@@ -83,10 +95,11 @@ public class Fighter : DndBaseClass
                 dndPlayer = CommonMethods.RetrievePlayer(player);
                 var playerBaseStats = PlayerStats.GetPlayerStats(dndPlayer);
                 var fighterLevel = CommonMethods.RetrievePlayerClassLevel(player);
+                MessagePlayer(player,$"Weapon Proficiency (Pistols): Pistols deal 25% bonus damage");
+                MessagePlayer(player,$"Heavy Armor Mastery: Reduces damage by 3 or 10% (larger value)");
                 if (fighterLevel > 10)
                 {
-                    MessagePlayer(player,
-                        $"Exotic Weapon Proficiency: Adds the AWP & Auto-Snipers to your repertoire");
+                    MessagePlayer(player,$"Exotic Weapon Proficiency: Adds the AWP & Auto-Snipers to your repertoire");
                     playerBaseStats.PermitWeapons(Dndcs2.Snipers.ToList());
                 }
             });            
