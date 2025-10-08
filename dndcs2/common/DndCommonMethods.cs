@@ -21,7 +21,14 @@ public partial class Dndcs2
             $"Level {classProgress.DndLevelAmount} {(constants.DndClass)dndPlayer.DndClassId} ({classProgress.DndExperienceAmount}/{classProgress.DndLevelAmount * 1000})";
         string specieMessage =
             $"Level {specieProgress.DndLevelAmount} {(constants.DndSpecie)dndPlayer.DndSpecieId} ({specieProgress.DndExperienceAmount}/{specieProgress.DndLevelAmount * 1000})";
-        
-        return $"<font size=\"24\">D&D Stats for {player.PlayerName}\n{GetTotalPlayTime(dndPlayer)}\n{classMessage}\n{specieMessage}</font>";
+        string subclassMessage = "";
+        if (dndPlayer.DndSubClassId != null)
+        {
+            DndSubClassProgress subClassProgress = CommonMethods.RetrievePlayerSubClassProgress(player);
+            subclassMessage =
+                $"\nLevel {subClassProgress.DndLevelAmount} {Dndcs2.FormatConstantNameForDisplay(((constants.DndSubClass) dndPlayer.DndSubClassId).ToString())} ({subClassProgress.DndExperienceAmount}/{subClassProgress.DndLevelAmount * 1000})";
+        }
+
+        return $"<font size=\"24\">D&D Stats for {player.PlayerName}\n{GetTotalPlayTime(dndPlayer)}\n{classMessage}\n{specieMessage}{subclassMessage}</font>";
     }
 }

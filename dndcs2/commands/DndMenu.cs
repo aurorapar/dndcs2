@@ -18,7 +18,7 @@ public class DndMenu : DndCommand
         if (player == null)
             return;
         
-        DndMainMenu menu = new();
+        DndMainMenu menu = new(player);
         menu.Display(player, 10);
     }
 
@@ -27,7 +27,7 @@ public class DndMenu : DndCommand
         var player = Utilities.GetPlayerFromUserid(@event.Userid);
         if(player == null)
             return HookResult.Continue;
-        DndMainMenu menu = new();
+        DndMainMenu menu = new(player);
         menu.Display(player, 10);
         return HookResult.Continue;
     }

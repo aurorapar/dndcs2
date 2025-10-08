@@ -18,7 +18,13 @@ public class PlayerSpawn : DndEvent<EventPlayerSpawn>
         if (@event.Userid == null)
             return HookResult.Continue;
         if(@event.Userid.ControllingBot || (int) @event.Userid.Team == 0)      
-            return HookResult.Continue;        
+            return HookResult.Continue;
+
+        if (@event.Userid.IsBot)
+        {
+            if(CommonMethods.RetrievePlayer(@event.Userid) == null)
+                CommonMethods.CreateNewPlayer(@event.Userid, GetType().Name);
+        }
         
         var player = @event.Userid;
         var playerStats = PlayerStats.GetPlayerStats(player);

@@ -9,6 +9,7 @@ namespace Dndcs2.Sql;
 public class DndcsContext : DbContext
 {
     public DbSet<DndClass> DndClasses { get; set; }
+    public DbSet<DndSubClass> DndSubClasses { get; set; }
     public DbSet<DndClassRequirement> DndClassRequirements { get; set; }
     
     public DbSet<DndSpecie> DndSpecies { get; set; }
@@ -17,6 +18,7 @@ public class DndcsContext : DbContext
     public DbSet<DndPlayer> DndPlayers { get; set; }
     public DbSet<DndPlayerStats> DndPlayerStats { get; set; }
     public DbSet<DndClassProgress> DndClassProgresses { get; set; }
+    public DbSet<DndSubClassProgress> DndSubClassProgresses { get; set; }
     public DbSet<DndSpecieProgress> DndSpecieProgresses { get; set; }
     
     public DbSet<DndExperienceLog> DndExperienceLogs { get; set; }

@@ -70,7 +70,7 @@ public abstract class DndBaseClass : DndClass
                 DateTime creationTime = DateTime.UtcNow;
                 string author = "D&D Initial Creation";
                 bool enabled = true;
-                string dndClassName = Enum.GetName(dndClassEnumType, dndClassEnum).Replace('_', ' ');
+                string dndClassName = Dndcs2.FormatConstantNameForDisplay(dndClassEnum.ToString());
                 try
                 {
                     var newDndClass = constructor[0].Invoke(new object[]
@@ -104,7 +104,7 @@ public abstract class DndBaseClass : DndClass
                         classReq.UpdatedDate,
                         classReq.Enabled, 
                         dndClassRecord.DndClassId,
-                        classReq.DndRequiredClassId, 
+                        classReq.DndDependentClassId, 
                         classReq.DndRequiredClassLevel
                     ));
                 }

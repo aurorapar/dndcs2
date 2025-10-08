@@ -14,6 +14,7 @@ public class DndPlayer : MetaDtoObject
     [DefaultValue(1)]
     public int DndClassId { get; set; }
     [ForeignKey(nameof(DndSpecie.DndSpecieId))]
+    public int? DndSubClassId { get; set; }
     [DefaultValue(1)]
     public int DndSpecieId { get; set; }
     public DateTime LastConnected { get; set; }
@@ -26,7 +27,7 @@ public class DndPlayer : MetaDtoObject
     public ICollection<DndSpecieProgress> DndSpecieExperience { get; } = new List<DndSpecieProgress>();
 
     public DndPlayer(string createdBy, DateTime createDate, string updatedBy, DateTime updatedDate, bool enabled, 
-        int dndPlayerAccountId, int dndGoldAmount, int dndClassId, int  dndSpecieId, DateTime lastConnected) : 
+        int dndPlayerAccountId, int dndGoldAmount, int dndClassId, int dndSpecieId, DateTime lastConnected) : 
         base( createdBy, createDate, updatedBy, updatedDate, enabled)
     {
         DndPlayerAccountId = dndPlayerAccountId;

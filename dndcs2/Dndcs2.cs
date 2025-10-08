@@ -22,6 +22,7 @@ public partial class Dndcs2 : BasePlugin
     public string DatabaseLocation { get; private set; }
     public readonly DndLog Log;
     public Dictionary<constants.DndClass, DndBaseClass> DndClassLookup { get; private set; } = new();
+    public Dictionary<constants.DndSubClass, DndBaseSubClass> DndSubClassLookup { get; private set; } = new();
     public Dictionary<constants.DndSpecie, DndBaseSpecie> DndSpecieLookup { get; private set; } = new();
     public List<PlayerBaseStats> PlayerBaseStats { get; private set; } = new();
     
@@ -51,6 +52,7 @@ public partial class Dndcs2 : BasePlugin
         
         DndBaseClass.RegisterClasses();
         DndBaseSpecie.RegisterSpecies();
+        DndBaseSubClass.RegisterSubClasses();
         RegisterCommands();
         
         Log.LogInformation("Loaded plugin");

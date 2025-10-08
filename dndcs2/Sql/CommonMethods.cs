@@ -47,7 +47,7 @@ public static class CommonMethods
             var candidates = connection.DndPlayers
                 .Where(p => p.DndPlayerAccountId == accountId && p.Enabled == true);
             
-            return candidates.First();
+            return candidates.FirstOrDefault();
         }
     }
 
@@ -86,6 +86,32 @@ public static class CommonMethods
             var candidates = connection.DndClassProgresses
                 .Where(s => s.DndPlayerId == dndPlayer.DndPlayerId && s.DndClassId == (int) dndClass 
                     && s.Enabled == true);
+            return candidates.FirstOrDefault();
+        }
+    }
+    
+    public static DndSubClassProgress? RetrievePlayerSubClassProgress(CCSPlayerController player)
+    {
+        DndPlayer dndPlayer =  RetrievePlayer(player);        
+         
+        using (var connection = CreateContext())
+        {
+            var candidates = connection.DndSubClassProgresses
+                .Where(s => s.DndPlayerId == dndPlayer.DndPlayerId && s.DndSubClassId == dndPlayer.DndSubClassId 
+                                                                   && s.Enabled == true);
+            return candidates.FirstOrDefault();
+        }
+    }
+    
+    public static DndSubClassProgress? RetrievePlayerSubClassProgress(CCSPlayerController player, constants.DndSubClass dndSubClass)
+    {
+        DndPlayer dndPlayer =  RetrievePlayer(player);        
+         
+        using (var connection = CreateContext())
+        {
+            var candidates = connection.DndSubClassProgresses
+                .Where(s => s.DndPlayerId == dndPlayer.DndPlayerId && s.DndSubClassId == (int) dndSubClass 
+                                                                   && s.Enabled == true);
             return candidates.FirstOrDefault();
         }
     }
@@ -164,6 +190,27 @@ public static class CommonMethods
         }
     }
     
+    public static void CreateNewSubClassProgress(CCSPlayerController player, constants.DndSubClass dndSubClass, string creator)
+    {
+        var dndPlayer = RetrievePlayer(player);
+        var subClassProgress = new DndSubClassProgress(
+            creator,
+            DateTime.UtcNow,
+            creator,
+            DateTime.UtcNow,
+            true,
+            dndPlayer.DndPlayerId,
+            (int) dndSubClass
+        );
+
+        using (var connection = CreateContext())
+        {
+            connection.DndSubClassProgresses.Add(subClassProgress);
+            connection.Entry(subClassProgress).State = EntityState.Added;
+            SaveChanges(connection);
+        }
+    }
+    
     public static void CreateNewSpecieProgress(CCSPlayerController player, constants.DndSpecie dndSpecie, string creator)
     {
         var dndPlayer = RetrievePlayer(player);
@@ -221,6 +268,28 @@ public static class CommonMethods
         // Dndcs2.DndLogger.LogInformation($"Class {dndClass.DndClassName} created");
     }
     
+    public static DndSubClass? RetrieveDndSubClass(int dndSubClassId)
+    {
+        using (var connection = CreateContext())
+        {
+            var candidates = connection.DndSubClasses
+                .Where(c => c.DndSubClassId == dndSubClassId && c.Enabled == true);
+            return candidates.FirstOrDefault();
+        }
+    }
+
+    public static void CreateNewDndSubClass(DndSubClass dndSubClass)
+    {
+        using (var connection = CreateContext())
+        {
+            connection.DndSubClasses.Add(dndSubClass);    
+            connection.Entry(dndSubClass).State = EntityState.Added;
+            SaveChanges(connection);
+        }
+
+        // Dndcs2.DndLogger.LogInformation($"Class {dndClass.DndClassName} created");
+    }
+    
     public static dtos.DndSpecie? RetrieveDndSpecie(int dndSpecieId)
     {
         using (var connection = CreateContext())
@@ -265,33 +334,65 @@ public static class CommonMethods
     public static void GrantExperience(CCSPlayerController player, DndExperienceLog xpLogItem)
     {
         var dndClassProgress = RetrievePlayerClassProgress(player);
+        var dndSubClassProgress = RetrievePlayerSubClassProgress(player);
         var dndSpecieProgress = RetrievePlayerSpecieProgress(player);
         
         dndClassProgress.DndExperienceAmount += xpLogItem.ExperienceAmount;
         dndClassProgress.UpdatedDate = xpLogItem.CreateDate;
         dndClassProgress.UpdatedBy = xpLogItem.CreatedBy;
-        
+
+        if (dndSubClassProgress != null)
+        {
+            dndSubClassProgress.DndExperienceAmount += xpLogItem.ExperienceAmount;
+            dndClassProgress.UpdatedDate = xpLogItem.CreateDate;
+            dndClassProgress.UpdatedBy = xpLogItem.CreatedBy;
+        }
+
         dndSpecieProgress.DndExperienceAmount += xpLogItem.ExperienceAmount;
         dndSpecieProgress.UpdatedDate = xpLogItem.CreateDate;
         dndSpecieProgress.UpdatedBy = xpLogItem.CreatedBy;
 
         if (dndClassProgress.DndExperienceAmount >= dndClassProgress.DndLevelAmount * 1000)
         {
-            BroadcastMessage($"Congratulations, {player.PlayerName}! You leveled up your class!");
-            dndClassProgress.DndExperienceAmount -= dndClassProgress.DndLevelAmount * 1000;
-            dndClassProgress.DndLevelAmount += 1;
+            if (dndClassProgress.DndLevelAmount < 20)
+            {
+                BroadcastMessage($"Congratulations, {player.PlayerName}! You leveled up your class!");
+                dndClassProgress.DndExperienceAmount -= dndClassProgress.DndLevelAmount * 1000;
+                dndClassProgress.DndLevelAmount += 1;
+            }
         }
         if (dndSpecieProgress.DndExperienceAmount >= dndSpecieProgress.DndLevelAmount * 1000 )
         {
-            BroadcastMessage($"Congratulations, {player.PlayerName}! You leveled up your specie!");
-            dndSpecieProgress.DndExperienceAmount -= dndSpecieProgress.DndLevelAmount * 1000;
-            dndSpecieProgress.DndLevelAmount += 1;
-        }        
+            if (dndSpecieProgress.DndLevelAmount < 20)
+            {
+                BroadcastMessage($"Congratulations, {player.PlayerName}! You leveled up your specie!");
+                dndSpecieProgress.DndExperienceAmount -= dndSpecieProgress.DndLevelAmount * 1000;
+                dndSpecieProgress.DndLevelAmount += 1;
+            }
+        }     
+        if (dndSubClassProgress != null)
+        {
+            dndSubClassProgress.DndExperienceAmount += xpLogItem.ExperienceAmount;
+            dndSubClassProgress.UpdatedDate = xpLogItem.CreateDate;
+            dndSubClassProgress.UpdatedBy = xpLogItem.CreatedBy;
+
+            if (dndSubClassProgress.DndExperienceAmount >= dndSubClassProgress.DndLevelAmount * 1000)
+            {
+                if (dndSubClassProgress.DndLevelAmount < 20)
+                {
+                    BroadcastMessage($"Congratulations, {player.PlayerName}! You leveled up your subclass!");
+                    dndSubClassProgress.DndExperienceAmount -= dndSubClassProgress.DndLevelAmount * 1000;
+                    dndSubClassProgress.DndLevelAmount += 1;
+                }
+            }
+        }
 
         using (var connection = CreateContext())
         {
             connection.DndExperienceLogs.Add(xpLogItem);
             connection.Entry(dndClassProgress).State = EntityState.Modified;
+            if(dndSubClassProgress != null)
+                connection.Entry(dndSubClassProgress).State = EntityState.Modified;
             connection.Entry(dndSpecieProgress).State = EntityState.Modified;
             connection.Entry(xpLogItem).State = EntityState.Added;
             SaveChanges(connection);
@@ -349,6 +450,46 @@ public static class CommonMethods
 
         return true;
     }
+    
+    public static bool ChangeSubClass(CCSPlayerController player, constants.DndSubClass? newSubClass)
+    {        
+        var dndPlayer = RetrievePlayer(player);
+        if (dndPlayer.DndSubClassId == (int)newSubClass)
+            return false;
+
+        if (newSubClass == null)
+        {
+            dndPlayer.DndSubClassId = null;
+            dndPlayer.UpdatedDate = DateTime.Now;
+            dndPlayer.UpdatedBy = "ChangeClass";
+            using (var connection = CreateContext())
+            {
+                connection.Entry(dndPlayer).State = EntityState.Modified;
+                SaveChanges(connection);
+            }
+        }
+
+        var initializedNewSubClass = (constants.DndSubClass) newSubClass.Value;
+        
+        if (!CanPlayClass(player, initializedNewSubClass))
+            return false;
+        
+        var progress = RetrievePlayerSubClassProgress(player, initializedNewSubClass);
+        if (progress == null)
+            CreateNewSubClassProgress(player, initializedNewSubClass, "ChangeSubClass");
+        
+        dndPlayer.DndSubClassId = (int)initializedNewSubClass;
+        dndPlayer.UpdatedDate = DateTime.Now;
+        dndPlayer.UpdatedBy = "ChangeClass";
+        using (var connection = CreateContext())
+        {
+            connection.Entry(dndPlayer).State = EntityState.Modified;
+            SaveChanges(connection);
+        }
+
+        return true;
+    }
+    
 
     public static bool CanPlayClass(CCSPlayerController player, constants.DndClass dndClass)
     {
@@ -358,12 +499,24 @@ public static class CommonMethods
             return true;
         foreach (var requirement in dndClassRequirements)
         {
-            var progress = RetrievePlayerClassProgress(player, (constants.DndClass) requirement.DndRequiredClassId);
+            var progress = RetrievePlayerClassProgress(player, (constants.DndClass) requirement.DndPrincipleClassId);
             if (progress == null)
                 return false;
             if (progress.DndLevelAmount < requirement.DndRequiredClassLevel)
                 return false;
         }
+        return true;
+    }
+    
+    public static bool CanPlayClass(CCSPlayerController player, constants.DndSubClass dndSubClass)
+    {        
+        var subClassObj = Dndcs2.Instance.DndSubClassLookup[dndSubClass];
+        var progress = RetrievePlayerClassProgress(player, (constants.DndClass) subClassObj.DndParentClassId);
+        if (progress == null)
+            return false;
+        if (progress.DndLevelAmount < subClassObj.DndParentClassLevelRequirementId)
+            return false;
+        
         return true;
     }
     

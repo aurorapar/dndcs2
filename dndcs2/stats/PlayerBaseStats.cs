@@ -12,6 +12,7 @@ public class PlayerBaseStats
 {
     public int Userid {get; private set;}
     public constants.DndClass? QueuedClass = null;
+    public constants.DndSubClass? QueuedSubClass = null;
     public constants.DndSpecie? QueuedSpecie = null;
     public int MaxHealth { get; private set; } = 100;
     public int MaxMana { get; private set; } = 0;
@@ -53,11 +54,37 @@ public class PlayerBaseStats
 
     public void Reset()
     {
-        //Dndcs2.Instance.Log.LogInformation($"PlayerBaseStats Reset for {Utilities.GetPlayerFromUserid(Userid).PlayerName}");
+        var player = Utilities.GetPlayerFromUserid(Userid);
+        var dndPlayer = CommonMethods.RetrievePlayer(player);
         if (QueuedClass != null)
-            CommonMethods.ChangeClass(Utilities.GetPlayerFromUserid(Userid), (constants.DndClass) QueuedClass);
+        {
+            CommonMethods.ChangeClass(player, (constants.DndClass)QueuedClass);
+            if (QueuedSubClass == null && dndPlayer.DndSubClassId != null)
+            {
+                if (Dndcs2.Instance.DndSubClassLookup[(constants.DndSubClass)dndPlayer.DndSubClassId]
+                        .DndParentClassId != dndPlayer.DndClassId)
+                {
+                    MessagePlayer(player, "Your Sub Class has been removed because it did not match your Class.");
+                    CommonMethods.ChangeSubClass(player, null);
+                }
+            }
+        }
+
+        if (QueuedSubClass != null)
+        {
+            var subClass = Dndcs2.Instance.DndSubClassLookup[QueuedSubClass.Value];
+            if(subClass.DndParentClassId != dndPlayer.DndClassId)
+            {
+                QueuedSubClass = null;
+                MessagePlayer(player, "Your Sub Class has been removed because it did not match your Class.");
+                CommonMethods.ChangeSubClass(player, null);
+            }
+            else
+                CommonMethods.ChangeSubClass(player, (constants.DndSubClass)QueuedSubClass);
+        }
+
         if (QueuedSpecie != null)
-            CommonMethods.ChangeSpecie(Utilities.GetPlayerFromUserid(Userid), (constants.DndSpecie) QueuedSpecie);
+            CommonMethods.ChangeSpecie(player, (constants.DndSpecie) QueuedSpecie);
         QueuedClass = null;
         QueuedSpecie = null;
         MaxHealth = 100;
@@ -65,7 +92,7 @@ public class PlayerBaseStats
         Mana = 0;
         FlurryOfBlows = 0;
         Wildshape = false;
-        OriginalModel = Utilities.GetPlayerFromUserid(Userid).PlayerPawn.Value.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState?.ModelName;
+        OriginalModel = player.PlayerPawn.Value.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState?.ModelName;
         MonkHits = new();
         FlurryMessages = new();
         if(Speed != 1)

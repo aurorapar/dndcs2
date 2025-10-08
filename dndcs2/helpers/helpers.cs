@@ -89,6 +89,16 @@ public partial class Dndcs2
         .AddRange(Snipers)
         .AddRange(Grenades)
     ;
+
+    public static string FormatConstantNameForDisplay(string name)
+    {
+        return name.Replace("_", " ");
+    }
+    
+    public static string FormatDisplayNameForConstant(string name)
+    {
+        return name.Replace(" ", "_");
+    }
     
     public static void DamageTarget(CCSPlayerController attacker, CCSPlayerController victim, int amount, bool separateDamage = true, DamageTypes_t damageType = DamageTypes_t.DMG_BULLET)
     {

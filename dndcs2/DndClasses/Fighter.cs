@@ -54,7 +54,7 @@ public class Fighter : DndBaseClass
                 reduction = Math.Min(@event.DmgHealth, reduction);
                 
                 @event.Health += (int) reduction;
-                @event.Userid.PlayerPawn.Value.Health = @event.Health;
+                @event.Userid.PlayerPawn.Value.Health += (int) reduction;
                 Utilities.SetStateChanged(victim.PlayerPawn.Value, "CBaseEntity", "m_iHealth");
             }
             
