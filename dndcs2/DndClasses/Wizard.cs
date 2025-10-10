@@ -13,8 +13,8 @@ namespace Dndcs2.DndClasses;
 
 public class Wizard : DndBaseClass
 {
-    public override PlayerStat GoodStat { get; } = PlayerStat.Intelligence;
-    public override PlayerStat AverageStat { get; } = PlayerStat.Wisdom;
+    public override PlayerAbility GoodStat { get; } = PlayerAbility.Intelligence;
+    public override PlayerAbility AverageStat { get; } = PlayerAbility.Wisdom;
     public override PlayerStatRating HealthRating { get; }= PlayerStatRating.Low;
 
     public override List<string> WeaponList { get; } = Dndcs2.Weapons

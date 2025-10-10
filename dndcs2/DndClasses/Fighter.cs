@@ -13,8 +13,8 @@ namespace Dndcs2.DndClasses;
 
 public class Fighter : DndBaseClass
 {
-    public override PlayerStat GoodStat { get; } = PlayerStat.Strength;
-    public override PlayerStat AverageStat { get; } = PlayerStat.Constitution;
+    public override PlayerAbility GoodStat { get; } = PlayerAbility.Strength;
+    public override PlayerAbility AverageStat { get; } = PlayerAbility.Constitution;
     public override PlayerStatRating HealthRating { get; } = PlayerStatRating.High;
 
     public override List<string> WeaponList { get; } = Dndcs2.Weapons

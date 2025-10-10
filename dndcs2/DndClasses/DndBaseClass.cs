@@ -18,8 +18,8 @@ namespace Dndcs2.DndClasses;
 public abstract class DndBaseClass : DndClass
 {
     private static bool _spawnEventRegistered = false;
-    public abstract PlayerStat GoodStat { get; }
-    public abstract PlayerStat AverageStat { get; }
+    public abstract PlayerAbility GoodStat { get; }
+    public abstract PlayerAbility AverageStat { get; }
     public abstract PlayerStatRating HealthRating { get; }
     public abstract List<string> WeaponList { get; }
     

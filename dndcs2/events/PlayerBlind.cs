@@ -42,7 +42,7 @@ public class PlayerBlind : DndEvent<EventPlayerBlind>
             }
             
             var victimStats = PlayerStats.GetPlayerStats(victim);
-            if (victimStats.MakeDiceCheck(attacker, PlayerStat.Intelligence, PlayerStat.Constitution))
+            if (victimStats.MakeDiceCheck(attacker, PlayerAbility.Intelligence, PlayerAbility.Constitution))
             {
                 Dndcs2.UnblindPlayer(victim);
                 return HookResult.Stop;

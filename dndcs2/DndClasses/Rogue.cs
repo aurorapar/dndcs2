@@ -14,8 +14,8 @@ namespace Dndcs2.DndClasses;
 
 public class Rogue : DndBaseClass
 {
-    public override PlayerStat GoodStat { get; } = PlayerStat.Dexterity;
-    public override PlayerStat AverageStat { get; } = PlayerStat.Intelligence;
+    public override PlayerAbility GoodStat { get; } = PlayerAbility.Dexterity;
+    public override PlayerAbility AverageStat { get; } = PlayerAbility.Intelligence;
     public override PlayerStatRating HealthRating { get; }= PlayerStatRating.Average;
 
     public override List<string> WeaponList { get; } = Dndcs2.Weapons

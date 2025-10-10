@@ -14,8 +14,8 @@ namespace Dndcs2.DndClasses;
 
 public class Cleric : DndBaseClass
 {
-    public override PlayerStat GoodStat { get; } = PlayerStat.Wisdom;
-    public override PlayerStat AverageStat { get; } = PlayerStat.Charisma;
+    public override PlayerAbility GoodStat { get; } = PlayerAbility.Wisdom;
+    public override PlayerAbility AverageStat { get; } = PlayerAbility.Charisma;
     public override PlayerStatRating HealthRating { get; }= PlayerStatRating.Average;
 
     public override List<string> WeaponList { get; } = Dndcs2.Weapons

@@ -93,7 +93,7 @@ public class Dragonborn : DndBaseSpecie
                     {
                         var damage = new DieRoll(sides: 6, amount: 2).Result;                        
                         var blastTargetStats = PlayerStats.GetPlayerStats(blastTarget);
-                        if(blastTargetStats.MakeDiceCheck(attacker, PlayerStat.Constitution, PlayerStat.Dexterity))
+                        if(blastTargetStats.MakeDiceCheck(attacker, PlayerAbility.Constitution, PlayerAbility.Dexterity))
                             damage /= 2;
                         Dndcs2.DamageTarget(attacker, blastTarget, damage);
                         

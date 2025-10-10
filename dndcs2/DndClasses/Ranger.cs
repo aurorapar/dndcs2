@@ -14,8 +14,8 @@ namespace Dndcs2.DndClasses;
 
 public class Ranger : DndBaseClass
 {
-    public override PlayerStat GoodStat { get; } = PlayerStat.Dexterity;
-    public override PlayerStat AverageStat { get; } = PlayerStat.Strength;
+    public override PlayerAbility GoodStat { get; } = PlayerAbility.Dexterity;
+    public override PlayerAbility AverageStat { get; } = PlayerAbility.Strength;
     public override PlayerStatRating HealthRating { get; } = PlayerStatRating.High;
 
     public override List<string> WeaponList { get; } = Dndcs2.Weapons

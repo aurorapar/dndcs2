@@ -237,23 +237,23 @@ public class PlayerBaseStats
         return AllowedWeapons.Select(w => w.ToUpper()).ToList();
     }
 
-    public int GetPlayerStatValue(PlayerStat statEnum)
+    public int GetPlayerStatValue(PlayerAbility statEnum)
     {
-        PlayerStatRating statRating = ((Func<PlayerStat, PlayerStatRating>)((saveStat) =>
+        PlayerStatRating statRating = ((Func<PlayerAbility, PlayerStatRating>)((saveStat) =>
         {
             switch (saveStat)
             {
-                case PlayerStat.Strength:
+                case PlayerAbility.Strength:
                     return _strengthStat;
-                case PlayerStat.Dexterity:
+                case PlayerAbility.Dexterity:
                     return _dexterityStat;
-                case PlayerStat.Constitution:
+                case PlayerAbility.Constitution:
                     return _constitutionStat;
-                case PlayerStat.Intelligence:
+                case PlayerAbility.Intelligence:
                     return _intelligenceStat;
-                case PlayerStat.Wisdom:
+                case PlayerAbility.Wisdom:
                     return _wisdomStat;
-                case PlayerStat.Charisma:
+                case PlayerAbility.Charisma:
                     return _charismaStat;
                 default:
                     throw new ArgumentException("Needed to supply a PlayerStat");
@@ -287,12 +287,12 @@ public class PlayerBaseStats
         return (int) Math.Ceiling((double) playerLevel / 4 + 1);
     }
 
-    public bool MakeDiceCheck(CCSPlayerController aggressor, PlayerStat aggressorStat, PlayerStat victimStat, bool advantage = false)
+    public bool MakeDiceCheck(CCSPlayerController aggressor, PlayerAbility aggressorAbility, PlayerAbility victimAbility, bool advantage = false)
     {        
         var victim = Utilities.GetPlayerFromUserid(Userid);
         var aggressorStats = PlayerStats.GetPlayerStats(aggressor);
-        var diceCheckTarget = 8 + aggressorStats.GetPlayerStatValue(aggressorStat);
-        string saveType = aggressorStat.ToString().Split("Save")[0];
+        var diceCheckTarget = 8 + aggressorStats.GetPlayerStatValue(aggressorAbility);
+        string saveType = aggressorAbility.ToString().Split("Save")[0];
         var diceRoll = new DieRoll(sides:20, amount:1, advantage: advantage);
         
         if (diceRoll.CriticalFailure)
@@ -309,7 +309,7 @@ public class PlayerBaseStats
         }
 
         var diceResult = diceRoll.Result;
-        if (diceRoll.Result + GetPlayerStatValue(victimStat) >= diceCheckTarget)
+        if (diceRoll.Result + GetPlayerStatValue(victimAbility) >= diceCheckTarget)
         {
             MessagePlayer(victim, $"You succeeded a {saveType} Save DC of {diceCheckTarget}");
             MessagePlayer(aggressor, $"Someone succeeded on your {saveType} Save DC of {diceCheckTarget}");
@@ -321,26 +321,26 @@ public class PlayerBaseStats
         return false;
     }
 
-    public void SetGoodStat(PlayerStat stat)
+    public void SetGoodStat(PlayerAbility stat)
     {
         switch (stat)
         {
-            case PlayerStat.Strength:
+            case PlayerAbility.Strength:
                 _strengthStat = PlayerStatRating.High;
                 return;
-            case PlayerStat.Dexterity:
+            case PlayerAbility.Dexterity:
                 _dexterityStat = PlayerStatRating.High;
                 return;
-            case PlayerStat.Constitution:
+            case PlayerAbility.Constitution:
                 _constitutionStat = PlayerStatRating.High;
                 return;
-            case PlayerStat.Intelligence:
+            case PlayerAbility.Intelligence:
                 _intelligenceStat = PlayerStatRating.High;
                 return;
-            case PlayerStat.Wisdom:
+            case PlayerAbility.Wisdom:
                 _wisdomStat = PlayerStatRating.High;
                 return;
-            case PlayerStat.Charisma:
+            case PlayerAbility.Charisma:
                 _charismaStat = PlayerStatRating.High;
                 return;
             default:
@@ -348,26 +348,26 @@ public class PlayerBaseStats
         };
     }
     
-    public void SetAverageStat(PlayerStat stat)
+    public void SetAverageStat(PlayerAbility stat)
     {
         switch (stat)
         {
-            case PlayerStat.Strength:
+            case PlayerAbility.Strength:
                 _strengthStat = PlayerStatRating.Average;
                 return;
-            case PlayerStat.Dexterity:
+            case PlayerAbility.Dexterity:
                 _dexterityStat = PlayerStatRating.Average;
                 return;
-            case PlayerStat.Constitution:
+            case PlayerAbility.Constitution:
                 _constitutionStat = PlayerStatRating.Average;
                 return;
-            case PlayerStat.Intelligence:
+            case PlayerAbility.Intelligence:
                 _intelligenceStat = PlayerStatRating.Average;
                 return;
-            case PlayerStat.Wisdom:
+            case PlayerAbility.Wisdom:
                 _wisdomStat = PlayerStatRating.Average;
                 return;
-            case PlayerStat.Charisma:
+            case PlayerAbility.Charisma:
                 _charismaStat = PlayerStatRating.Average;
                 return;
             default:
@@ -416,7 +416,7 @@ public class PlayerBaseStats
     }
 }
 
-public enum PlayerStat
+public enum PlayerAbility
 {
     Strength,
     Dexterity,

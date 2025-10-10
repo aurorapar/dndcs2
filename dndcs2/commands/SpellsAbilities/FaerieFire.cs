@@ -43,7 +43,7 @@ public class FaerieFire : DndAbility
             return false;
         }
 
-        if (PlayerStats.GetPlayerStats(target).MakeDiceCheck(player, PlayerStat.Dexterity, PlayerStat.Dexterity, false))
+        if (PlayerStats.GetPlayerStats(target).MakeDiceCheck(player, PlayerAbility.Dexterity, PlayerAbility.Dexterity, false))
         {
             MessagePlayer(player, "No one was caught in the Faerie Fire");
         }
